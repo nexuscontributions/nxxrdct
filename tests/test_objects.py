@@ -3,8 +3,8 @@ import pint
 
 from nxxrdct.nxobject.nxdetector import NXdetector
 from nxxrdct.nxobject.nxinstrument import NXinstrument
-from nxxrdct.nxobject.nxmonochromator import NXmonochromator
 from nxxrdct.nxobject.nxmonitor import NXmonitor
+from nxxrdct.nxobject.nxmonochromator import NXmonochromator
 from nxxrdct.nxobject.nxsample import NXsample
 from nxxrdct.nxobject.nxsource import NXsource
 

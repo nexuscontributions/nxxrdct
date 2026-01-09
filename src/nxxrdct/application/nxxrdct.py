@@ -10,7 +10,6 @@ import h5py
 import pint
 from silx.io.utils import open as hdf5_open
 
-from nxxrdct.nxobject.nxdetector import NXdetector
 from nxxrdct.nxobject.nxinstrument import NXinstrument
 from nxxrdct.nxobject.nxmonitor import NXmonitor
 from nxxrdct.nxobject.nxobject import NXobject
