@@ -2,7 +2,7 @@
   <img src="nxxrdct/resources/nxxrdct.png" alt="nxxrdct" width="180">
 </p>
 
-The goal of the `nxxrdct` project is to provide a powerful and user-friendly API to create, edit or read [NXxrdct](https://manual.nexusformat.org/classes/applications/nxxrdct.html) application definition files.
+The goal of the `nxxrdct` project is to provide a python API to create, load, edit, and save [NXxrdct](https://manual.nexusformat.org/classes/applications/nxxrdct.html) application definition files.
 
 
 Please find at https://tomotools.gitlab-pages.esrf.fr/nxxrdct the latest documentation
