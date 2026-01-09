@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nxxrdct"
+authors = [
+    {name = "Pierre-Olivier Autran", email = "pierre-olivier.autran@esrf.fr"},
+]
+
+dynamic = ["version"]
+description = "Package to create, load, edit, and save files following the nxxrdct application definition."
+readme = "README.md"
+
+requires-python = ">=3.10"
+keywords = ["nxxrdct", "Nexus", "XRD-CT", "Diffraction Tomography", "ESRF"]
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: 1 - Planning Copy Development Status",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+dependencies = [
+    "numpy",
+    "h5py>=3.0",
+    "silx>=2.0",
+    "pint",
+    "packaging",
+]
+
+[project.urls]
+Homepage = "https://github.com/nexuscontributions/nxxrdct"
+Documentation = "https://nxxrdct.readthedocs.io/en/stable/"
+Repository = "https://github.com/nexuscontributions/nxxrdct"
+Changelog = "https://github.com/nexuscontributions/nxxrdct/-/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "black",
+    "isort",
+    "ruff"
+]
+doc = [
+    "Sphinx",
+    "nbsphinx",
+    "jupyterlab",
+    "ipykernel",
+    "nbconvert",
+    "pandoc",
+    "scikit-image",
+    "h5glance",
+    "jupyter_client",
+    "pydata_sphinx_theme",
+    "sphinx_autodoc_typehints",
+    "myst-parser",
+]
+
+[build_sphinx]
+source_dir = "doc"
+build_dir = "build/sphinx"
+
+[tool.setuptools.dynamic]
+version = {attr = "nxxrdct.version.version"}
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
