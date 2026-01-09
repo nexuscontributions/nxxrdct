@@ -130,7 +130,7 @@ jobs:
         python-version: ["3.10", "3.14"]
     env:
       PYTEST_COV: ""
-      COVERAGE_SOURCE: ${{ env.INTERNAL_PROJECT_NAME }}
+      COVERAGE_SOURCE: nxxrdct
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
