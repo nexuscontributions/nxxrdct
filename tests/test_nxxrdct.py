@@ -9,7 +9,7 @@ def _build_nxxrdct():
     ureg = pint.get_application_registry()
     nx = NXxrdct()
     nx.title = "test-entry"
-    nx.energy = 60 * ureg.keV
+    nx.beam.incident_energy = 60 * ureg.keV
     nx.sample.name = "sample-1"
     nx.sample.rotation_angle = np.linspace(0, 180, 3) * ureg.degree
     nx.sample.translation_values = np.array([0.0, 1.0, 2.0]) * ureg.meter
@@ -71,7 +71,7 @@ def test_round_trip_load(tmp_path):
 
     loaded = NXxrdct().load(str(file_path), "entry")
     assert loaded.title == "test-entry"
-    assert loaded.energy is not None
+    assert loaded.beam.incident_energy is not None
     assert loaded.sample is not None
     assert loaded.sample.rotation_angle is not None
     assert loaded.sample.translation_values is not None

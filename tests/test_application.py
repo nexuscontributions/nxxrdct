@@ -9,7 +9,7 @@ def _build_entry():
     ureg = pint.get_application_registry()
     nx = NXxrdct()
     nx.title = "entry"
-    nx.energy = 30 * ureg.keV
+    nx.beam.incident_energy = 30 * ureg.keV
     nx.sample.name = "sample"
     nx.sample.rotation_angle = np.array([0.0, 90.0]) * ureg.degree
     nx.sample.translation_values = np.array([0.0, 1.0]) * ureg.meter
@@ -34,7 +34,7 @@ def test_save_and_load_roundtrip(tmp_path):
 
     loaded = NXxrdct().load(str(file_path), "entry")
     assert loaded.title == "entry"
-    assert loaded.energy is not None
+    assert loaded.beam.incident_energy is not None
     assert loaded.sample.name == "sample"
     assert loaded.sample.rotation_angle is not None
     assert loaded.sample.translation_values is not None
