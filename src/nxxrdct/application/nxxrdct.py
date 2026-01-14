@@ -7,17 +7,15 @@ import os
 from datetime import datetime
 
 import h5py
-import pint
 from silx.io.utils import open as hdf5_open
 
+from nxxrdct.nxobject.nxbeam import NXbeam
 from nxxrdct.nxobject.nxinstrument import NXinstrument
 from nxxrdct.nxobject.nxmonitor import NXmonitor
 from nxxrdct.nxobject.nxobject import NXobject
 from nxxrdct.nxobject.nxsample import NXsample
 from nxxrdct.paths.nxxrdct import LATEST_VERSION, get_paths
-from nxxrdct.utils import get_data, get_quantity
-
-_ureg = pint.get_application_registry()
+from nxxrdct.utils import get_data
 
 _logger = logging.getLogger(__name__)
 
@@ -35,8 +33,8 @@ class NXxrdct(NXobject):
         self._start_time = None
         self._end_time = None
         self._title = None
-        self._energy = None
         self._intensity = None
+        self._beam = NXbeam(node_name="beam", parent=self)
         self._instrument = NXinstrument(node_name="instrument", parent=self)
         self._sample = NXsample(node_name="sample", parent=self)
         self._control = NXmonitor(node_name="control", parent=self)
@@ -77,25 +75,24 @@ class NXxrdct(NXobject):
         self._title = value
 
     @property
-    def energy(self) -> pint.Quantity | None:
-        return self._energy
-
-    @energy.setter
-    def energy(self, value: pint.Quantity | None):
-        if value is None:
-            self._energy = None
-        elif isinstance(value, pint.Quantity):
-            self._energy = value.to(_ureg.keV)
-        else:
-            self._energy = _ureg.Quantity(value, _ureg.keV)
-
-    @property
     def intensity(self):
         return self._intensity
 
     @intensity.setter
     def intensity(self, value):
         self._intensity = value
+
+    @property
+    def beam(self) -> NXbeam | None:
+        return self._beam
+
+    @beam.setter
+    def beam(self, value: NXbeam | None) -> None:
+        if not isinstance(value, (type(None), NXbeam)):
+            raise TypeError(
+                f"beam is expected to be {NXbeam} or None. Not {type(value)}"
+            )
+        self._beam = value
 
     @property
     def instrument(self) -> NXinstrument | None:
@@ -159,6 +156,11 @@ class NXxrdct(NXobject):
         else:
             _logger.info("no control found. Won't be saved")
 
+        if self.beam is not None:
+            nx_dict.update(self.beam.to_nx_dict(nexus_path_version))
+        else:
+            _logger.info("no beam found. Won't be saved")
+
         if self.start_time is not None:
             path = f"{self.path}/{nexus_paths.START_TIME_PATH}"
             start_time = (
@@ -175,12 +177,6 @@ class NXxrdct(NXobject):
                 else self.end_time
             )
             nx_dict[path] = end_time
-        if self.energy is not None:
-            path_energy = f"{self.path}/{nexus_paths.ENERGY_PATH}"
-            nx_dict[path_energy] = self.energy.magnitude
-            nx_dict[f"{path_energy}@units"] = f"{self.energy.units:~}"
-            path_beam = f"{self.path}/{nexus_paths.BEAM_PATH}"
-            nx_dict[f"{path_beam}@NX_class"] = "NXbeam"
         if self.title is not None:
             path_title = f"{self.path}/{nexus_paths.NAME_PATH}"
             nx_dict[path_title] = self.title
@@ -243,11 +239,6 @@ class NXxrdct(NXobject):
                 nexus_version = LATEST_VERSION
 
         nexus_paths = get_paths(nexus_version)
-        self.energy = get_quantity(
-            file_path=file_path,
-            data_path="/".join([data_path, nexus_paths.ENERGY_PATH]),
-            default_unit=_ureg.keV,
-        )
         start_time = get_data(
             file_path=file_path,
             data_path="/".join([data_path, nexus_paths.START_TIME_PATH]),
@@ -275,6 +266,10 @@ class NXxrdct(NXobject):
         if self.sample is not None:
             self.sample._load(
                 file_path, "/".join([data_path, "sample"]), nexus_version=nexus_version
+            )
+        if self.beam is not None:
+            self.beam._load(
+                file_path, "/".join([data_path, nexus_paths.BEAM_PATH]), nexus_version
             )
         if self.instrument is not None:
             self.instrument._load(

@@ -48,6 +48,9 @@ class NXxrdctPaths:
         PRESET: str = "preset"
         INTEGRAL: str = "integral"
 
+    class NXBeamPaths:
+        INCIDENT_ENERGY: str = "incident_energy"
+
     class NXMonochromatorPaths:
         WAVELENGTH: str = "wavelength"
 
@@ -55,6 +58,7 @@ class NXxrdctPaths:
     nx_detector_paths = NXDetectorPaths()
     nx_source_paths = NXSourcePaths()
     nx_monitor_paths = NXMonitorPaths()
+    nx_beam_paths = NXBeamPaths()
     nx_monochromator_paths = NXMonochromatorPaths()
 
 
