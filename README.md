@@ -28,7 +28,7 @@ ureg = pint.get_application_registry()
 
 nx = NXxrdct()
 nx.title = "Demo XRD-CT"
-nx.energy = 60 * ureg.keV
+nx.beam.incident_energy = 60 * ureg.keV
 nx.sample.name = "sample-01"
 nx.sample.rotation_angle = np.linspace(0, 180, 181) * ureg.degree
 nx.instrument.detector.data = np.zeros((181, 256, 256))

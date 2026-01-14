@@ -1,3 +1,4 @@
+from .nxbeam import NXbeam  # noqa: F401
 from .nxdetector import NXdetector  # noqa: F401
 from .nxinstrument import NXinstrument  # noqa: F401
 from .nxmonitor import NXmonitor  # noqa: F401
