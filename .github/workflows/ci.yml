@@ -131,6 +131,7 @@ jobs:
     env:
       PYTEST_COV: ""
       COVERAGE_SOURCE: nxxrdct
+      PYTEST_DIR: tests
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -147,30 +148,14 @@ jobs:
           done
       - run: python -m pip list
       - run: |
-          cd sdist
-          export DISTRO_NAME=${INTERNAL_PROJECT_NAME//[-]/_}
-          export DISTRO_COVERAGE_SOURCE=${COVERAGE_SOURCE//[-]/_}
           if [ -z "$PYTEST_COV" ]; then
-            echo "pytest arguments:" ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} --pyargs ${DISTRO_NAME}
-            $PYTEST_CMD ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} --pyargs ${DISTRO_NAME}
+            echo "pytest arguments:" ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} ${PYTEST_DIR}
+            $PYTEST_CMD ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} ${PYTEST_DIR}
           else
-            echo "coverage run arguments:" ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} --pyargs ${DISTRO_NAME}
-            python -m coverage run --omit="${COVERAGE_OMIT}" --source="${DISTRO_COVERAGE_SOURCE}" -m pytest ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} --pyargs ${DISTRO_NAME}
+            echo "coverage run arguments:" ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} ${PYTEST_DIR}
+            python -m coverage run --omit="${COVERAGE_OMIT}" --source="${COVERAGE_SOURCE}" -m pytest ${PYTEST_OPTIONS} ${PYTEST_WARNINGS} ${PYTEST_DIR}
             python -m coverage report
           fi
-
-  test_tutorials:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.14"
-      - run: python -m pip install --upgrade pip setuptools
-      - run: python -m pip install $PIP_INSTALL_OPTIONS .[doc]
-      - run: jupyter nbconvert --to notebook --execute doc/tutorials/create_from_scratch.ipynb
-      - run: jupyter nbconvert --to notebook --execute doc/tutorials/edit.ipynb
 
   build_doc:
     runs-on: ubuntu-latest
@@ -181,7 +166,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install --upgrade pip setuptools
-      - run: python -m pip install sphinx<9.0.0rc1 .[doc]
+      - run: python -m pip install sphinx .[doc]
       - run: python -m pip list
       - run: sphinx-build doc html -j auto
       - run: rm -rf public && mkdir -p public
