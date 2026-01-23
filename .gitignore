@@ -60,9 +60,8 @@ h5_datasets/
 # octave files
 octave-workspace
 
-# sphinx autosummary stuff
+# sphinx build and generated artifacts
 doc/_generated/*
-doc/_templates/*
 html
 
 # tutorials output
