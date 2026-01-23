@@ -1,0 +1,2 @@
+nxxrdct_version=0.1.0
+nexus_definition_version=1.0
