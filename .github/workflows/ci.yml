@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
 env:
   INTERNAL_PROJECT_NAME: nxxrdct
   PYTEST_CMD: python -m pytest
@@ -165,6 +169,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/configure-pages@v5
       - run: python -m pip install --upgrade pip setuptools
       - run: python -m pip install sphinx .[doc]
       - run: python -m pip list
