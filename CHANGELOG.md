@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- None.
+
+### Changed
+- None.
+
+### Deprecated
+- None.
+
+### Removed
+- None.
+
+### Fixed
+- None.
+
+### Security
+- None.
+
+## [0.1.0a0] - 2026-01-25
+
+### Added
 - Initial NXxrdct API with NXentry, instrument, sample, and control objects.
 - NXmonochromator support with wavelength metadata.
 - Detector metadata for polar angles and diffraction channels.
