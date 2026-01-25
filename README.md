@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="nxxrdct/resources/nxxrdct.png" alt="nxxrdct" width="180">
+  <img src="nxxrdct/doc/_static/nxxrdct.png" alt="NXxrdct" width="180">
 </p>
 
 The goal of the `nxxrdct` project is to provide a python API to create, load, edit, and save [NXxrdct](https://manual.nexusformat.org/classes/applications/nxxrdct.html) application definition files.
