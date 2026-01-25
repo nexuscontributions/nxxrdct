@@ -46,7 +46,7 @@ dependencies = [
 Homepage = "https://github.com/nexuscontributions/nxxrdct"
 Documentation = "https://nxxrdct.readthedocs.io/en/stable/"
 Repository = "https://github.com/nexuscontributions/nxxrdct"
-Changelog = "https://github.com/nexuscontributions/nxxrdct/-/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/nexuscontributions/nxxrdct/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 test = [
