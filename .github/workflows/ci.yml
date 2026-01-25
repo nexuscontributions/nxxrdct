@@ -215,6 +215,7 @@ jobs:
     env:
       TWINE_USERNAME: __token__
       PYPI_REPOSITORY: pypi
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -247,6 +248,7 @@ jobs:
     env:
       TWINE_USERNAME: __token__
       PYPI_REPOSITORY: testpypi
+      TWINE_PASSWORD: ${{ secrets.TEST_TWINE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
