@@ -1,4 +1,4 @@
-.. |nxxrdct_icon| image:: img/nxxrdct.png
+.. |nxxrdct_icon| image:: _static/nxxrdct.png
 
 
 ==============
