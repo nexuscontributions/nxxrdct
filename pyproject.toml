@@ -44,7 +44,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/nexuscontributions/nxxrdct"
-Documentation = "https://nxxrdct.readthedocs.io/en/stable/"
+Documentation = "https://nxxrdct.readthedocs.io/en/latest/"
 Repository = "https://github.com/nexuscontributions/nxxrdct"
 Changelog = "https://github.com/nexuscontributions/nxxrdct/blob/main/CHANGELOG.md"
 
