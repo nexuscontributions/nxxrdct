@@ -5,7 +5,7 @@
 The goal of the `nxxrdct` project is to provide a python API to create, load, edit, and save [NXxrdct](https://manual.nexusformat.org/classes/applications/nxxrdct.html) application definition files.
 
 
-Please find at https://tomotools.gitlab-pages.esrf.fr/nxxrdct the latest documentation
+Please find at https://nxxrdct.readthedocs.io/en/latest/ the latest documentation
 
 ```bash
 pip install nxxrdct
@@ -38,12 +38,12 @@ nx.save("demo_xrdct.h5", data_path="entry")
 ```
 
 ## Documentation and Support
-- Latest documentation: https://nxxrdct.readthedocs.io/en/stable/index.html
-- API reference: https://nxxrdct.readthedocs.io/en/stable/api.html
-- Report issues and follow development on GitLab: https://github.com/nexuscontributions/nxxrdct
+- Latest documentation: https://nxxrdct.readthedocs.io/en/latest/
+- API reference: https://nxxrdct.readthedocs.io/en/latest/api.html
+- Report issues and follow development on GitHub: https://github.com/nexuscontributions/nxxrdct/issues
 
 ## Contributing
-Contributions and feedback are welcome. Please open an issue or submit a merge request on GitLab. See the development guide in `doc/development` for details on setting up a local environment and running the test suite.
+Contributions and feedback are welcome. Please open an issue or submit a merge request on Github. See the development guide in `doc/development` for details on setting up a local environment and running the test suite.
 
 ## License
 `nxxrdct` is released under the MIT License. See `LICENSE` for the full text.
