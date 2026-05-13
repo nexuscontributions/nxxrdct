@@ -196,9 +196,9 @@ class NXxrdct(NXobject):
                 ).replace("//", "/")
                 nx_dict[f">/{data_path_group}/translation_values"] = translation_path
                 axes.append("translation_values")
-            if self.sample is not None and self.sample.rotation_angle is not None:
+            if self.sample is not None and self.sample.rotation_angles is not None:
                 rotation_path = (
-                    f"/{data_path}/{self.sample.path}/rotation_angle"
+                    f"/{data_path}/{self.sample.path}/rotation_angles"
                 ).replace("//", "/")
                 nx_dict[f">/{data_path_group}/rotation_angles"] = rotation_path
                 axes.append("rotation_angles")
@@ -324,7 +324,10 @@ class NXxrdct(NXobject):
 
     @staticmethod
     def node_is_nxxrdct(node: h5py.Group) -> bool:
-        if "definition" in node.attrs and str(node.attrs["definition"]).lower() == "nxxrdct":
+        if (
+            "definition" in node.attrs
+            and str(node.attrs["definition"]).lower() == "nxxrdct"
+        ):
             return True
         if "NX_class" not in node.attrs and "NXclass" not in node.attrs:
             return False

@@ -11,7 +11,7 @@ def _build_entry():
     nx.title = "entry"
     nx.beam.incident_energy = 30 * ureg.keV
     nx.sample.name = "sample"
-    nx.sample.rotation_angle = np.array([0.0, 90.0]) * ureg.degree
+    nx.sample.rotation_angles = np.array([0.0, 90.0]) * ureg.degree
     nx.sample.translation_values = np.array([0.0, 1.0]) * ureg.meter
     nx.instrument.name = "id15a"
     nx.instrument.source.name = "src"
@@ -36,7 +36,7 @@ def test_save_and_load_roundtrip(tmp_path):
     assert loaded.title == "entry"
     assert loaded.beam.incident_energy is not None
     assert loaded.sample.name == "sample"
-    assert loaded.sample.rotation_angle is not None
+    assert loaded.sample.rotation_angles is not None
     assert loaded.sample.translation_values is not None
     assert loaded.instrument.name == "id15a"
     assert loaded.instrument.monochromator.wavelength is not None

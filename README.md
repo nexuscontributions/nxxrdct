@@ -30,7 +30,7 @@ nx = NXxrdct()
 nx.title = "Demo XRD-CT"
 nx.beam.incident_energy = 60 * ureg.keV
 nx.sample.name = "sample-01"
-nx.sample.rotation_angle = np.linspace(0, 180, 181) * ureg.degree
+nx.sample.rotation_angles = np.linspace(0, 180, 181) * ureg.degree
 nx.instrument.detector.data = np.zeros((181, 256, 256))
 nx.instrument.detector.count_time = 0.1 * ureg.second
 
