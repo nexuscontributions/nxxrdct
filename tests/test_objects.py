@@ -13,12 +13,12 @@ def test_nxsample_to_nx_dict():
     ureg = pint.get_application_registry()
     sample = NXsample()
     sample.name = "s1"
-    sample.rotation_angle = np.array([0.0, 90.0]) * ureg.degree
+    sample.rotation_angles = np.array([0.0, 90.0]) * ureg.degree
     sample.translation_values = np.array([0.0, 1.0]) * ureg.meter
     sample.x_translation = np.array([0.1, 0.2]) * ureg.meter
     nx_dict = sample.to_nx_dict()
     assert f"{sample.path}/name" in nx_dict
-    assert f"{sample.path}/rotation_angle" in nx_dict
+    assert f"{sample.path}/rotation_angles" in nx_dict
     assert f"{sample.path}/translation_values" in nx_dict
     assert f"{sample.path}/x_translation" in nx_dict
 
@@ -71,7 +71,9 @@ def test_nxinstrument_to_nx_dict_includes_children():
     instrument = NXinstrument()
     instrument.name = "id15a"
     instrument.source.name = "src"
-    instrument.monochromator.wavelength = 0.1 * pint.get_application_registry().nanometer
+    instrument.monochromator.wavelength = (
+        0.1 * pint.get_application_registry().nanometer
+    )
     instrument.detector.data = np.zeros((1, 1))
     nx_dict = instrument.to_nx_dict()
     assert f"{instrument.path}/name" in nx_dict

@@ -22,7 +22,7 @@ class NXxrdctPaths:
 
     class NXSamplePaths:
         NAME: str = "name"
-        ROTATION_ANGLE: str = "rotation_angle"
+        ROTATION_ANGLES: str = "rotation_angles"
         TRANSLATION_VALUES: str = "translation_values"
         X_TRANSLATION: str = "x_translation"
         Y_TRANSLATION: str = "y_translation"

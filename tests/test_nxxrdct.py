@@ -11,7 +11,7 @@ def _build_nxxrdct():
     nx.title = "test-entry"
     nx.beam.incident_energy = 60 * ureg.keV
     nx.sample.name = "sample-1"
-    nx.sample.rotation_angle = np.linspace(0, 180, 3) * ureg.degree
+    nx.sample.rotation_angles = np.linspace(0, 180, 3) * ureg.degree
     nx.sample.translation_values = np.array([0.0, 1.0, 2.0]) * ureg.meter
     nx.instrument.name = "id15a"
     nx.instrument.source.name = "undulator"
@@ -51,7 +51,7 @@ def test_save_builds_expected_structure(tmp_path):
 
         assert "sample" in entry
         assert "translation_values" in entry["sample"]
-        assert "rotation_angle" in entry["sample"]
+        assert "rotation_angles" in entry["sample"]
 
         assert "instrument" in entry
         assert "detector" in entry["instrument"]
@@ -73,7 +73,7 @@ def test_round_trip_load(tmp_path):
     assert loaded.title == "test-entry"
     assert loaded.beam.incident_energy is not None
     assert loaded.sample is not None
-    assert loaded.sample.rotation_angle is not None
+    assert loaded.sample.rotation_angles is not None
     assert loaded.sample.translation_values is not None
     assert loaded.instrument is not None
     assert loaded.instrument.detector is not None

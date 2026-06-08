@@ -4,6 +4,8 @@ Module for handling an NXsample.
 
 from __future__ import annotations
 
+import warnings
+
 import numpy
 import pint
 
@@ -27,7 +29,7 @@ class NXsample(NXobject):
         super().__init__(node_name=node_name, parent=parent)
         self._set_freeze(False)
         self._name = None
-        self._rotation_angle = None
+        self._rotation_angles = None
         self._translation_values = None
         self._x_translation = None
         self._y_translation = None
@@ -44,13 +46,28 @@ class NXsample(NXobject):
             raise TypeError(f"name is expected to be None or str not {type(name)}")
         self._name = name
 
+    # --- Deprecate rotation_angle ---
     @property
     def rotation_angle(self) -> pint.Quantity | None:
-        return self._rotation_angle
+        return self._rotation_angles
 
     @rotation_angle.setter
     def rotation_angle(self, rotation_angle):
-        self._rotation_angle = _coerce_quantity(rotation_angle, _ureg.degree)
+        warnings.warn(
+            "'rotation_angle' is deprecated; use 'rotation_angles' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        self._rotation_angles = _coerce_quantity(rotation_angle, _ureg.degree)
+
+    @property
+    def rotation_angles(self) -> pint.Quantity | None:
+        return self._rotation_angles
+
+    @rotation_angles.setter
+    def rotation_angles(self, rotation_angles):
+        self._rotation_angles = _coerce_quantity(rotation_angles, _ureg.degree)
 
     @property
     def translation_values(self):
@@ -95,9 +112,9 @@ class NXsample(NXobject):
 
         if self.name is not None:
             nx_dict[f"{self.path}/{sample_paths.NAME}"] = self.name
-        if self.rotation_angle is not None:
-            path = f"{self.path}/{sample_paths.ROTATION_ANGLE}"
-            nx_dict[path] = self.rotation_angle.to(_ureg.degree).magnitude
+        if self.rotation_angles is not None:
+            path = f"{self.path}/{sample_paths.ROTATION_ANGLES}"
+            nx_dict[path] = self.rotation_angles.to(_ureg.degree).magnitude
             nx_dict[f"{path}@units"] = "degree"
         if self.translation_values is not None:
             path = f"{self.path}/{sample_paths.TRANSLATION_VALUES}"
@@ -125,9 +142,9 @@ class NXsample(NXobject):
         sample_paths = nexus_paths.nx_sample_paths
 
         self.name = get_data(file_path, "/".join([data_path, sample_paths.NAME]))
-        self.rotation_angle = get_quantity(
+        self.rotation_angles = get_quantity(
             file_path,
-            "/".join([data_path, sample_paths.ROTATION_ANGLE]),
+            "/".join([data_path, sample_paths.ROTATION_ANGLES]),
             default_unit=_ureg.degree,
         )
         self.translation_values = get_quantity(
