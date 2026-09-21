@@ -23,7 +23,7 @@ def _build_nxxrdct():
     nx.control.mode = "monitor"
     nx.control.preset = 1.0
     nx.control.integral = 42.0
-    nx.intensity = np.zeros((3, 3, 4))
+    nx.instrument.detector.data = np.zeros((3, 3, 4))
     return nx
 
 
@@ -43,11 +43,17 @@ def test_save_builds_expected_structure(tmp_path):
         data_group = entry["data"]
         assert data_group.attrs["NX_class"] in ("NXdata", b"NXdata")
         assert data_group.attrs["signal"] in ("intensity", b"intensity")
-        assert data_group.attrs["axes"] in (
-            "translation_values:rotation_angles:diffraction_channel",
-            b"translation_values:rotation_angles:diffraction_channel",
+        np.testing.assert_array_equal(
+            data_group.attrs["axes"],
+            ["translation_values", "rotation_angles", "diffraction_channel"],
         )
         assert "intensity" in data_group
+        assert isinstance(
+            data_group.get("intensity", getlink=True), h5py.SoftLink
+        )
+        np.testing.assert_array_equal(
+            data_group["intensity"][()], entry["instrument"]["detector"]["data"][()]
+        )
 
         assert "sample" in entry
         assert "translation_values" in entry["sample"]
@@ -55,6 +61,7 @@ def test_save_builds_expected_structure(tmp_path):
 
         assert "instrument" in entry
         assert "detector" in entry["instrument"]
+        assert "data" in entry["instrument"]["detector"]
         assert "polar_angle" in entry["instrument"]["detector"]
         assert "diffraction_channel" in entry["instrument"]["detector"]
 
@@ -81,4 +88,4 @@ def test_round_trip_load(tmp_path):
     assert loaded.instrument.detector.diffraction_channel is not None
     assert loaded.control is not None
     assert loaded.control.mode == "monitor"
-    assert loaded.intensity is not None
+    assert loaded.instrument.detector.data is not None
