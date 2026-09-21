@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import warnings
 from datetime import datetime
 
 import h5py
@@ -33,7 +34,6 @@ class NXxrdct(NXobject):
         self._start_time = None
         self._end_time = None
         self._title = None
-        self._intensity = None
         self._beam = NXbeam(node_name="beam", parent=self)
         self._instrument = NXinstrument(node_name="instrument", parent=self)
         self._sample = NXsample(node_name="sample", parent=self)
@@ -74,13 +74,19 @@ class NXxrdct(NXobject):
             raise TypeError(f"title is expected to be str or None. Not {type(value)}")
         self._title = value
 
+    # --- Deprecate intensity ---
     @property
     def intensity(self):
-        return self._intensity
+        return self.instrument.detector.data
 
     @intensity.setter
     def intensity(self, value):
-        self._intensity = value
+        warnings.warn(
+            "'intensity' is deprecated; use 'instrument.detector.data' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.instrument.detector.data = value
 
     @property
     def beam(self) -> NXbeam | None:
@@ -181,9 +187,12 @@ class NXxrdct(NXobject):
             path_title = f"{self.path}/{nexus_paths.NAME_PATH}"
             nx_dict[path_title] = self.title
 
-        if self.intensity is not None:
+        if self.instrument.detector.data is not None:
             data_path_group = f"{self.path}/{nexus_paths.DATA_GROUP}"
-            nx_dict[f"{data_path_group}/intensity"] = self.intensity
+            detector_data_path = (
+                f"/{data_path}/{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.DATA}"
+            ).replace("//", "/")
+            nx_dict[f">/{data_path_group}/intensity"] = detector_data_path
             nx_dict[f"{data_path_group}/intensity@signal"] = 1
             nx_dict[f"{data_path_group}@NX_class"] = "NXdata"
             nx_dict[f"{data_path_group}@signal"] = "intensity"
@@ -192,13 +201,13 @@ class NXxrdct(NXobject):
             axes = []
             if self.sample is not None and self.sample.translation_values is not None:
                 translation_path = (
-                    f"/{data_path}/{self.sample.path}/translation_values"
+                    f"/{data_path}/{self.sample.path}/{nexus_paths.nx_sample_paths.TRANSLATION_VALUES}"
                 ).replace("//", "/")
                 nx_dict[f">/{data_path_group}/translation_values"] = translation_path
                 axes.append("translation_values")
             if self.sample is not None and self.sample.rotation_angles is not None:
                 rotation_path = (
-                    f"/{data_path}/{self.sample.path}/rotation_angles"
+                    f"/{data_path}/{self.sample.path}/{nexus_paths.nx_sample_paths.ROTATION_ANGLES}"
                 ).replace("//", "/")
                 nx_dict[f">/{data_path_group}/rotation_angles"] = rotation_path
                 axes.append("rotation_angles")
@@ -208,12 +217,12 @@ class NXxrdct(NXobject):
                 and self.instrument.detector.diffraction_channel is not None
             ):
                 channel_path = (
-                    f"/{data_path}/{self.instrument.detector.path}/diffraction_channel"
+                    f"/{data_path}/{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.DIFFRACTION_CHANNEL}"
                 ).replace("//", "/")
                 nx_dict[f">/{data_path_group}/diffraction_channel"] = channel_path
                 axes.append("diffraction_channel")
             if axes:
-                nx_dict[f"{data_path_group}@axes"] = ":".join(axes)
+                nx_dict[f"{data_path_group}@axes"] = axes
 
         if nx_dict:
             nx_dict[f"{self.path}@NX_class"] = "NXentry"
@@ -281,10 +290,6 @@ class NXxrdct(NXobject):
             self.control._load(
                 file_path, "/".join([data_path, "control"]), nexus_version=nexus_version
             )
-        self.intensity = get_data(
-            file_path,
-            "/".join([data_path, nexus_paths.DATA_GROUP, "intensity"]),
-        )
         return self
 
     def save(
