@@ -1,4 +1,5 @@
-from nxxrdct.paths.nxxrdct import LATEST_VERSION, get_paths
+from nxxrdct.paths.nxxrdct import LATEST_VERSION
+from nxxrdct.paths.nxxrdct import get_paths
 
 
 def test_get_paths_default_version():

@@ -2,7 +2,8 @@ import h5py
 import numpy as np
 import pint
 
-from nxxrdct.application.nxxrdct import NXxrdct, copy_nxxrdct_file
+from nxxrdct.application.nxxrdct import NXxrdct
+from nxxrdct.application.nxxrdct import copy_nxxrdct_file
 
 
 def _build_entry():
