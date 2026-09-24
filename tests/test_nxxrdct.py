@@ -48,9 +48,7 @@ def test_save_builds_expected_structure(tmp_path):
             ["translation_values", "rotation_angles", "diffraction_channel"],
         )
         assert "intensity" in data_group
-        assert isinstance(
-            data_group.get("intensity", getlink=True), h5py.SoftLink
-        )
+        assert isinstance(data_group.get("intensity", getlink=True), h5py.SoftLink)
         np.testing.assert_array_equal(
             data_group["intensity"][()], entry["instrument"]["detector"]["data"][()]
         )
