@@ -105,9 +105,7 @@ class NXinstrument(NXobject):
                 file_path, "/".join([data_path, "detector"]), nexus_version
             )
         if self.source is not None:
-            self.source._load(
-                file_path, "/".join([data_path, "source"]), nexus_version
-            )
+            self.source._load(file_path, "/".join([data_path, "source"]), nexus_version)
         if self.monochromator is not None:
             self.monochromator._load(
                 file_path, "/".join([data_path, "monochromator"]), nexus_version
