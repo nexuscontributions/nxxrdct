@@ -23,7 +23,7 @@ def _build_entry():
     nx.control.mode = "monitor"
     nx.control.preset = 1.0
     nx.control.integral = 2.0
-    nx.intensity = np.zeros((2, 2, 2))
+    nx.instrument.detector.data = np.zeros((2, 2, 2))
     return nx
 
 
@@ -43,7 +43,7 @@ def test_save_and_load_roundtrip(tmp_path):
     assert loaded.instrument.detector.polar_angle is not None
     assert loaded.instrument.detector.diffraction_channel is not None
     assert loaded.control.mode == "monitor"
-    assert loaded.intensity is not None
+    assert loaded.instrument.detector.data is not None
 
 
 def test_get_valid_entries_and_copy(tmp_path):
