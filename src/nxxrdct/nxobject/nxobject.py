@@ -37,7 +37,8 @@ class NXobject:
     def parent(self, parent) -> None:
         if not isinstance(parent, (type(None), NXobject)):
             raise TypeError(
-                f"parent is expected to be None or an instance of {NXobject}. Got {type(parent)}"
+                f"parent is expected to be None or an instance of {NXobject}."
+                f" Got {type(parent)}"
             )
         self._parent = parent
 

@@ -14,7 +14,8 @@ from nxxrdct.nxobject.nxinstrument import NXinstrument
 from nxxrdct.nxobject.nxmonitor import NXmonitor
 from nxxrdct.nxobject.nxobject import NXobject
 from nxxrdct.nxobject.nxsample import NXsample
-from nxxrdct.paths.nxxrdct import LATEST_VERSION, get_paths
+from nxxrdct.paths.nxxrdct import LATEST_VERSION
+from nxxrdct.paths.nxxrdct import get_paths
 from nxxrdct.utils import get_data
 
 _logger = logging.getLogger(__name__)
@@ -48,7 +49,8 @@ class NXxrdct(NXobject):
     def start_time(self, value: datetime | str | None):
         if not isinstance(value, (type(None), datetime, str)):
             raise TypeError(
-                f"start_time is expected to be datetime, str, or None. Not {type(value)}"
+                "start_time is expected to be datetime, str, or None."
+                f" Not {type(value)}"
             )
         self._start_time = value
 
@@ -102,7 +104,8 @@ class NXxrdct(NXobject):
     def instrument(self, value: NXinstrument | None) -> None:
         if not isinstance(value, (type(None), NXinstrument)):
             raise TypeError(
-                f"instrument is expected to be {NXinstrument} or None. Not {type(value)}"
+                f"instrument is expected to be {NXinstrument} or None."
+                f" Not {type(value)}"
             )
         self._instrument = value
 
@@ -234,7 +237,8 @@ class NXxrdct(NXobject):
                 nexus_version = root_node.attrs["version"]
             else:
                 _logger.warning(
-                    f"Unable to find nexus version associated with {data_path}@{file_path}"
+                    "Unable to find nexus version associated with"
+                    f" {data_path}@{file_path}"
                 )
                 nexus_version = LATEST_VERSION
 

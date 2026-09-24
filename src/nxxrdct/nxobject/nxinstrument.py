@@ -40,7 +40,8 @@ class NXinstrument(NXobject):
     def detector(self, detector: NXdetector | None) -> None:
         if not isinstance(detector, (type(None), NXdetector)):
             raise TypeError(
-                f"detector is expected to be an instance of {NXdetector} or None. Not {type(detector)}"
+                f"detector is expected to be an instance of {NXdetector} or None."
+                f" Not {type(detector)}"
             )
         self._detector = detector
 
@@ -52,7 +53,8 @@ class NXinstrument(NXobject):
     def source(self, source: NXsource | None) -> None:
         if not isinstance(source, (type(None), NXsource)):
             raise TypeError(
-                f"source is expected to be an instance of {NXsource} or None. Not {type(source)}"
+                f"source is expected to be an instance of {NXsource} or None."
+                f" Not {type(source)}"
             )
         self._source = source
 
@@ -64,7 +66,8 @@ class NXinstrument(NXobject):
     def monochromator(self, mono: NXmonochromator | None) -> None:
         if not isinstance(mono, (type(None), NXmonochromator)):
             raise TypeError(
-                f"monochromator is expected to be an instance of {NXmonochromator} or None. Not {type(mono)}"
+                "monochromator is expected to be an instance of"
+                f" {NXmonochromator} or None. Not {type(mono)}"
             )
         self._monochromator = mono
 
