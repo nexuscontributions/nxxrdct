@@ -13,6 +13,9 @@ from nxxrdct.utils import get_data, get_quantity
 
 _ureg = pint.get_application_registry()
 
+DIFFRACTION_CHANNEL_LONG_NAMES = ("q", "2theta")
+DIFFRACTION_CHANNEL_UNITS = ("NX_PER_LENGTH", "NX_WAVENUMBER", "NX_ANGLE")
+
 
 def _coerce_quantity(value, unit: pint.Unit):
     if value is None:
@@ -33,6 +36,8 @@ class NXdetector(NXobject):
         self._x_pixel_size = None
         self._y_pixel_size = None
         self._diffraction_channel = None
+        self._diffraction_channel_long_name = None
+        self._diffraction_channel_units = None
         self._set_freeze(True)
 
     @property
@@ -91,6 +96,30 @@ class NXdetector(NXobject):
     def diffraction_channel(self, value):
         self._diffraction_channel = value
 
+    @property
+    def diffraction_channel_long_name(self) -> str | None:
+        return self._diffraction_channel_long_name
+
+    @diffraction_channel_long_name.setter
+    def diffraction_channel_long_name(self, value: str | None):
+        if value is not None and value not in DIFFRACTION_CHANNEL_LONG_NAMES:
+            raise ValueError(
+                f"diffraction_channel_long_name must be one of {DIFFRACTION_CHANNEL_LONG_NAMES}, got {value!r}"
+            )
+        self._diffraction_channel_long_name = value
+
+    @property
+    def diffraction_channel_units(self) -> str | None:
+        return self._diffraction_channel_units
+
+    @diffraction_channel_units.setter
+    def diffraction_channel_units(self, value: str | None):
+        if value is not None and value not in DIFFRACTION_CHANNEL_UNITS:
+            raise ValueError(
+                f"diffraction_channel_units must be one of {DIFFRACTION_CHANNEL_UNITS}, got {value!r}"
+            )
+        self._diffraction_channel_units = value
+
     def to_nx_dict(
         self,
         nexus_path_version: float | None = None,
@@ -123,9 +152,12 @@ class NXdetector(NXobject):
             nx_dict[path] = self.y_pixel_size.magnitude
             nx_dict[f"{path}@units"] = f"{self.y_pixel_size.units:~}"
         if self.diffraction_channel is not None:
-            nx_dict[f"{self.path}/{detector_paths.DIFFRACTION_CHANNEL}"] = (
-                self.diffraction_channel
-            )
+            path = f"{self.path}/{detector_paths.DIFFRACTION_CHANNEL}"
+            nx_dict[path] = self.diffraction_channel
+            if self.diffraction_channel_long_name is not None:
+                nx_dict[f"{path}@long_name"] = self.diffraction_channel_long_name
+            if self.diffraction_channel_units is not None:
+                nx_dict[f"{path}@units"] = self.diffraction_channel_units
 
         if nx_dict:
             nx_dict[f"{self.path}@NX_class"] = "NXdetector"
