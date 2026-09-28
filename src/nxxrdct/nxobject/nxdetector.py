@@ -105,7 +105,8 @@ class NXdetector(NXobject):
     def diffraction_channel_long_name(self, value: str | None):
         if value is not None and value not in DIFFRACTION_CHANNEL_LONG_NAMES:
             raise ValueError(
-                f"diffraction_channel_long_name must be one of {DIFFRACTION_CHANNEL_LONG_NAMES}, got {value!r}"
+                "diffraction_channel_long_name must be one of "
+                f"{DIFFRACTION_CHANNEL_LONG_NAMES}, got {value!r}"
             )
         self._diffraction_channel_long_name = value
 
@@ -117,7 +118,8 @@ class NXdetector(NXobject):
     def diffraction_channel_units(self, value: str | None):
         if value is not None and value not in DIFFRACTION_CHANNEL_UNITS:
             raise ValueError(
-                f"diffraction_channel_units must be one of {DIFFRACTION_CHANNEL_UNITS}, got {value!r}"
+                "diffraction_channel_units must be one of "
+                f"{DIFFRACTION_CHANNEL_UNITS}, got {value!r}"
             )
         self._diffraction_channel_units = value
 
