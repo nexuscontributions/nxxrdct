@@ -51,9 +51,10 @@ Changelog = "https://github.com/nexuscontributions/nxxrdct/blob/main/CHANGELOG.m
 [project.optional-dependencies]
 test = [
     "pytest",
-    "black",
-    "isort",
-    "ruff"
+]
+dev = [
+    "nxxrdct[test]",
+    "ruff>=0.16.0",
 ]
 doc = [
     "Sphinx",
@@ -82,3 +83,22 @@ version = {attr = "nxxrdct.version.version"}
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+    "S", # flake8-bandit
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["S101"] # allows asserts
+
+[tool.ruff.lint.isort]
+force-single-line = true
+known-first-party = ["nxxrdct"]

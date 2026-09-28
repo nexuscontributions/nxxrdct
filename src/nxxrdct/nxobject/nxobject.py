@@ -37,7 +37,8 @@ class NXobject:
     def parent(self, parent) -> None:
         if not isinstance(parent, (type(None), NXobject)):
             raise TypeError(
-                f"parent is expected to be None or an instance of {NXobject}. Got {type(parent)}"
+                f"parent is expected to be None or an instance of {NXobject}."
+                f" Got {type(parent)}"
             )
         self._parent = parent
 
@@ -75,9 +76,7 @@ class NXobject:
         file_path = os.path.abspath(file_path)
         entry_path = data_path or self.path or self.node_name
         if entry_path.lstrip("/").rstrip("/") == "":
-            raise ValueError(
-                "root NXobject requires a valid data_path to be saved"
-            )
+            raise ValueError("root NXobject requires a valid data_path to be saved")
         if os.path.exists(file_path):
             with h5py.File(file_path, mode="a") as h5f:
                 if entry_path != "/" and entry_path in h5f:

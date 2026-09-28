@@ -9,7 +9,8 @@ import pint
 
 from nxxrdct.nxobject.nxobject import NXobject
 from nxxrdct.paths.nxxrdct import get_paths
-from nxxrdct.utils import get_data, get_quantity
+from nxxrdct.utils import get_data
+from nxxrdct.utils import get_quantity
 
 _ureg = pint.get_application_registry()
 

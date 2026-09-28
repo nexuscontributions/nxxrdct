@@ -1,7 +1,8 @@
 import h5py
 import pint
 
-from nxxrdct.utils import get_data, get_quantity
+from nxxrdct.utils import get_data
+from nxxrdct.utils import get_quantity
 
 
 def test_get_data_and_quantity(tmp_path):
