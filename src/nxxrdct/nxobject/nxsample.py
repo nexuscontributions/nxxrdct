@@ -115,8 +115,9 @@ class NXsample(NXobject):
             nx_dict[f"{self.path}/{sample_paths.NAME}"] = self.name
         if self.rotation_angles is not None:
             path = f"{self.path}/{sample_paths.ROTATION_ANGLES}"
-            nx_dict[path] = self.rotation_angles.to(_ureg.degree).magnitude
-            nx_dict[f"{path}@units"] = "degree"
+            rotation_angles = self.rotation_angles.to(_ureg.degree)
+            nx_dict[path] = rotation_angles.magnitude
+            nx_dict[f"{path}@units"] = f"{rotation_angles.units:~}"
         if self.translation_values is not None:
             path = f"{self.path}/{sample_paths.TRANSLATION_VALUES}"
             nx_dict[path] = self.translation_values.magnitude

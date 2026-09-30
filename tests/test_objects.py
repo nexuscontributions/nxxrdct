@@ -29,12 +29,13 @@ def test_nxdetector_to_nx_dict():
     detector.data = np.zeros((2, 2))
     detector.polar_angle = np.array([1.0, 2.0]) * ureg.degree
     detector.distance = 0.5 * ureg.meter
-    detector.diffraction_channel = np.arange(3)
+    detector.radial_axis = np.array([1.0, 2.0, 3.0]) / ureg.angstrom
+    detector.radial_axis_long_name = "q"
     nx_dict = detector.to_nx_dict()
     assert f"{detector.path}/data" in nx_dict
     assert f"{detector.path}/polar_angle" in nx_dict
     assert f"{detector.path}/distance" in nx_dict
-    assert f"{detector.path}/diffraction_channel" in nx_dict
+    assert f"{detector.path}/radial_axis" in nx_dict
 
 
 def test_nxsource_to_nx_dict():

@@ -10,6 +10,7 @@ from silx.io.utils import open as hdf5_open
 _ureg = pint.get_application_registry()
 
 __all__ = [
+    "get_attribute",
     "get_data",
     "get_quantity",
 ]
@@ -53,4 +54,16 @@ def get_data(file_path: str, data_path: str):
     with hdf5_open(file_path) as h5f:
         if data_path in h5f:
             return h5py_read_dataset(h5f[data_path])
+    return None
+
+
+def get_attribute(file_path: str, data_path: str, name: str):
+    """
+    Read attribute `name` of the HDF5 node at `data_path`, decoding bytes to str.
+    Return None when the node or attribute is missing.
+    """
+    with hdf5_open(file_path) as h5f:
+        if data_path in h5f and name in h5f[data_path].attrs:
+            value = h5f[data_path].attrs[name]
+            return value.decode() if hasattr(value, "decode") else value
     return None

@@ -13,4 +13,4 @@ def test_get_paths_custom_version():
     paths = get_paths(2.5)
     assert paths.VERSION == 2.5
     assert paths.nx_sample_paths.ROTATION_ANGLES == "rotation_angles"
-    assert paths.nx_detector_paths.DIFFRACTION_CHANNEL == "diffraction_channel"
+    assert paths.nx_detector_paths.RADIAL_AXIS == "radial_axis"
