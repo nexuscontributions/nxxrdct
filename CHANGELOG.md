@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None.
 
-## [0.1.0b0] - 2026-09-29
+## [0.1.0b0] - 2026-09-30
 
 ### Added
 - `NXdetector.radial_axis_long_name` added and is required when `radial_axis` is set. It has a value of either `q` or `2theta`.
