@@ -30,11 +30,15 @@ nx = NXxrdct()
 nx.title = "Demo XRD-CT"
 nx.beam.incident_energy = 60 * ureg.keV
 nx.sample.name = "sample-01"
+nx.sample.translation_values = np.linspace(-1, 1, 64) * ureg.mm
 nx.sample.rotation_angles = np.linspace(0, 180, 181) * ureg.degree
-nx.instrument.detector.data = np.zeros((181, 256, 256))
+nx.instrument.detector.radial_axis = np.linspace(1, 15, 1000) * ureg.degree
+nx.instrument.detector.radial_axis_long_name = "2theta"
+# Azimuthally integrated intensity, shape (nTrans, nRot, nRadialBins)
+nx.instrument.detector.data = np.zeros((64, 181, 1000))
 nx.instrument.detector.count_time = 0.1 * ureg.second
 
-nx.save("demo_xrdct.h5", data_path="entry")
+nx.save("demo_xrdct.nxs", data_path="entry")
 ```
 
 ## Documentation and Support
