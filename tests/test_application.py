@@ -20,7 +20,8 @@ def _build_entry():
     nx.instrument.source.probe = "x-ray"
     nx.instrument.monochromator.wavelength = 0.1 * ureg.nanometer
     nx.instrument.detector.polar_angle = np.array([1.0, 2.0]) * ureg.degree
-    nx.instrument.detector.diffraction_channel = np.arange(2)
+    nx.instrument.detector.radial_axis = np.array([1.0, 2.0]) * ureg.degree
+    nx.instrument.detector.radial_axis_long_name = "2theta"
     nx.control.mode = "monitor"
     nx.control.preset = 1.0
     nx.control.integral = 2.0
@@ -42,7 +43,7 @@ def test_save_and_load_roundtrip(tmp_path):
     assert loaded.instrument.name == "id15a"
     assert loaded.instrument.monochromator.wavelength is not None
     assert loaded.instrument.detector.polar_angle is not None
-    assert loaded.instrument.detector.diffraction_channel is not None
+    assert loaded.instrument.detector.radial_axis is not None
     assert loaded.control.mode == "monitor"
     assert loaded.instrument.detector.data is not None
 
