@@ -196,7 +196,6 @@ class NXxrdct(NXobject):
                 f"/{data_path}/{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.DATA}"
             ).replace("//", "/")
             nx_dict[f">/{data_path_group}/intensity"] = detector_data_path
-            nx_dict[f"{data_path_group}/intensity@signal"] = 1
             nx_dict[f"{data_path_group}@NX_class"] = "NXdata"
             nx_dict[f"{data_path_group}@signal"] = "intensity"
             nx_dict[f"{self.path}@default"] = nexus_paths.DATA_GROUP
@@ -217,13 +216,13 @@ class NXxrdct(NXobject):
             if (
                 self.instrument is not None
                 and self.instrument.detector is not None
-                and self.instrument.detector.diffraction_channel is not None
+                and self.instrument.detector.radial_axis is not None
             ):
-                channel_path = (
-                    f"/{data_path}/{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.DIFFRACTION_CHANNEL}"
+                radial_axis_path = (
+                    f"/{data_path}/{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.RADIAL_AXIS}"
                 ).replace("//", "/")
-                nx_dict[f">/{data_path_group}/diffraction_channel"] = channel_path
-                axes.append("diffraction_channel")
+                nx_dict[f">/{data_path_group}/radial_axis"] = radial_axis_path
+                axes.append("radial_axis")
             if axes:
                 nx_dict[f"{data_path_group}@axes"] = axes
 

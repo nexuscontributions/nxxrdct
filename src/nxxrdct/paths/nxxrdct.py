@@ -35,7 +35,7 @@ class NXxrdctPaths:
         DISTANCE: str = "distance"
         X_PIXEL_SIZE: str = "x_pixel_size"
         Y_PIXEL_SIZE: str = "y_pixel_size"
-        DIFFRACTION_CHANNEL: str = "diffraction_channel"
+        RADIAL_AXIS: str = "radial_axis"
 
     class NXSourcePaths:
         NAME: str = "name"
