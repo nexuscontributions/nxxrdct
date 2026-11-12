@@ -1,6 +1,9 @@
+import re
+
 import h5py
 import numpy as np
 import pint
+import pytest
 
 from nxxrdct import NXxrdct
 
@@ -12,7 +15,7 @@ def _build_nxxrdct():
     nx.beam.incident_energy = 60 * ureg.keV
     nx.sample.name = "sample-1"
     nx.sample.rotation_angles = np.linspace(0, 180, 3) * ureg.degree
-    nx.sample.translation_values = np.array([0.0, 1.0, 2.0]) * ureg.meter
+    nx.sample.translation_values = np.array([0.0, 1.0]) * ureg.meter
     nx.instrument.name = "id15a"
     nx.instrument.source.name = "undulator"
     nx.instrument.source.type = "synchrotron"
@@ -24,7 +27,7 @@ def _build_nxxrdct():
     nx.control.mode = "monitor"
     nx.control.preset = 1.0
     nx.control.integral = 42.0
-    nx.instrument.detector.data = np.zeros((3, 3, 4))
+    nx.instrument.detector.data = np.zeros((2, 3, 4))
     return nx
 
 
@@ -48,6 +51,9 @@ def test_save_builds_expected_structure(tmp_path):
             data_group.attrs["axes"],
             ["translation_values", "rotation_angles", "radial_axis"],
         )
+        np.testing.assert_array_equal(
+            data_group.attrs["default_slice"], [".", ".", "0"]
+        )
         assert "intensity" in data_group
         assert isinstance(data_group.get("intensity", getlink=True), h5py.SoftLink)
         np.testing.assert_array_equal(
@@ -68,6 +74,47 @@ def test_save_builds_expected_structure(tmp_path):
         assert "mode" in entry["control"]
         assert "preset" in entry["control"]
         assert "integral" in entry["control"]
+
+
+def test_save_rejects_missing_axis(tmp_path):
+    nx = _build_nxxrdct()
+    nx.sample.translation_values = None
+    message = (
+        "translation_values must be 1D with length 2, but the given shape is None."
+    )
+    with pytest.raises(ValueError, match=re.escape(message)):
+        nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
+
+
+def test_save_rejects_2d_axis(tmp_path):
+    nx = _build_nxxrdct()
+    nx.sample.rotation_angles = np.zeros((3, 3))
+    message = "rotation_angles must be 1D with length 3, but the given shape is (3, 3)."
+    with pytest.raises(ValueError, match=re.escape(message)):
+        nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
+
+
+def test_save_rejects_data_not_3d(tmp_path):
+    nx = _build_nxxrdct()
+    nx.instrument.detector.data = np.zeros((3, 4))
+    message = "Intensity data must be 3D, but the given data is 2D with shape (3, 4)."
+    with pytest.raises(ValueError, match=re.escape(message)):
+        nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
+
+
+def test_invalid_save_keeps_existing_entry(tmp_path):
+    nx = _build_nxxrdct()
+    file_path = str(tmp_path / "out.nxs")
+    nx.save(file_path, data_path="entry")
+    # make the entry invalid and try to overwrite the saved one
+    nx.sample.translation_values = None
+    with pytest.raises(ValueError):
+        nx.save(file_path, data_path="entry", overwrite=True)
+    # check the original file is still valid
+    with h5py.File(file_path, mode="r") as h5f:
+        np.testing.assert_array_equal(
+            h5f["entry/sample/translation_values"][()], [0.0, 1.0]
+        )
 
 
 def test_round_trip_load(tmp_path):
