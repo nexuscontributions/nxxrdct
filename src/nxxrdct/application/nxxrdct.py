@@ -8,6 +8,7 @@ import warnings
 from datetime import datetime
 
 import h5py
+import numpy as np
 from silx.io.utils import open as hdf5_open
 
 from nxxrdct.nxobject.nxbeam import NXbeam
@@ -200,31 +201,48 @@ class NXxrdct(NXobject):
             nx_dict[f"{data_path_group}@signal"] = "intensity"
             nx_dict[f"{self.path}@default"] = nexus_paths.DATA_GROUP
 
-            axes = []
-            if self.sample is not None and self.sample.translation_values is not None:
-                translation_path = (
-                    f"/{data_path}/{self.sample.path}/{nexus_paths.nx_sample_paths.TRANSLATION_VALUES}"
-                ).replace("//", "/")
-                nx_dict[f">/{data_path_group}/translation_values"] = translation_path
-                axes.append("translation_values")
-            if self.sample is not None and self.sample.rotation_angles is not None:
-                rotation_path = (
-                    f"/{data_path}/{self.sample.path}/{nexus_paths.nx_sample_paths.ROTATION_ANGLES}"
-                ).replace("//", "/")
-                nx_dict[f">/{data_path_group}/rotation_angles"] = rotation_path
-                axes.append("rotation_angles")
-            if (
-                self.instrument is not None
-                and self.instrument.detector is not None
-                and self.instrument.detector.radial_axis is not None
-            ):
-                radial_axis_path = (
-                    f"/{data_path}/{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.RADIAL_AXIS}"
-                ).replace("//", "/")
-                nx_dict[f">/{data_path_group}/radial_axis"] = radial_axis_path
-                axes.append("radial_axis")
-            if axes:
-                nx_dict[f"{data_path_group}@axes"] = axes
+            # intensity is (nTrans, nRot, nRad)
+            shape = np.shape(self.instrument.detector.data)
+            if len(shape) != 3:
+                raise ValueError(
+                    f"Intensity data must be 3D, but the given data is {len(shape)}D"
+                    f" with shape {shape}."
+                )
+            if self.sample is None:
+                raise ValueError(
+                    "Both translation_values and rotation_angles are required."
+                )
+            dim_axes = [
+                (
+                    "translation_values",
+                    self.sample.translation_values,
+                    f"{self.sample.path}/{nexus_paths.nx_sample_paths.TRANSLATION_VALUES}",
+                ),
+                (
+                    "rotation_angles",
+                    self.sample.rotation_angles,
+                    f"{self.sample.path}/{nexus_paths.nx_sample_paths.ROTATION_ANGLES}",
+                ),
+                (
+                    "radial_axis",
+                    self.instrument.detector.radial_axis,
+                    f"{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.RADIAL_AXIS}",
+                ),
+            ]
+            axes_vals = []
+            for dim, (name, values, path) in enumerate(dim_axes):
+                if values is None or np.shape(values) != (shape[dim],):
+                    values_shape = None if values is None else np.shape(values)
+                    raise ValueError(
+                        f"{name} must be 1D with length {shape[dim]},"
+                        f" but the given shape is {values_shape}."
+                    )
+                nx_dict[f">/{data_path_group}/{name}"] = f"/{data_path}/{path}".replace(
+                    "//", "/"
+                )
+                axes_vals.append(name)
+            nx_dict[f"{data_path_group}@axes"] = axes_vals
+            nx_dict[f"{data_path_group}@default_slice"] = [".", ".", "0"]
 
         if nx_dict:
             nx_dict[f"{self.path}@NX_class"] = "NXentry"
