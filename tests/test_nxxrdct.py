@@ -102,6 +102,21 @@ def test_save_rejects_data_not_3d(tmp_path):
         nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
 
 
+def test_invalid_save_keeps_existing_entry(tmp_path):
+    nx = _build_nxxrdct()
+    file_path = str(tmp_path / "out.nxs")
+    nx.save(file_path, data_path="entry")
+    # make the entry invalid and try to overwrite the saved one
+    nx.sample.translation_values = None
+    with pytest.raises(ValueError):
+        nx.save(file_path, data_path="entry", overwrite=True)
+    # check the original file is still valid
+    with h5py.File(file_path, mode="r") as h5f:
+        np.testing.assert_array_equal(
+            h5f["entry/sample/translation_values"][()], [0.0, 1.0]
+        )
+
+
 def test_round_trip_load(tmp_path):
     nx = _build_nxxrdct()
     file_path = tmp_path / "roundtrip.nxs"
