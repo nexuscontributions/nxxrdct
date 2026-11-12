@@ -77,6 +77,9 @@ class NXobject:
         entry_path = data_path or self.path or self.node_name
         if entry_path.lstrip("/").rstrip("/") == "":
             raise ValueError("root NXobject requires a valid data_path to be saved")
+        nx_dict = self.to_nx_dict(
+            nexus_path_version=nexus_path_version, data_path=data_path
+        )
         if os.path.exists(file_path):
             with h5py.File(file_path, mode="a") as h5f:
                 if entry_path != "/" and entry_path in h5f:
@@ -85,9 +88,6 @@ class NXobject:
                     else:
                         raise KeyError(f"{entry_path} already exists")
 
-        nx_dict = self.to_nx_dict(
-            nexus_path_version=nexus_path_version, data_path=data_path
-        )
         dicttonx(
             nx_dict,
             h5file=file_path,
