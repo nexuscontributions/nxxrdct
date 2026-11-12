@@ -57,7 +57,7 @@ class NXsample(NXobject):
         warnings.warn(
             "'rotation_angle' is deprecated; use 'rotation_angles' instead.",
             DeprecationWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
 
         self._rotation_angles = _coerce_quantity(rotation_angle, _ureg.degree)
