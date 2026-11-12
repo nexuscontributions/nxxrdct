@@ -35,6 +35,10 @@ class NXxrdctPaths:
         DISTANCE: str = "distance"
         X_PIXEL_SIZE: str = "x_pixel_size"
         Y_PIXEL_SIZE: str = "y_pixel_size"
+
+    class NXDataPaths:
+        INTENSITY: str = "I"
+        INTENSITY_ERRORS: str = "I_errors"
         RADIAL_AXIS: str = "radial_axis"
 
     class NXSourcePaths:
@@ -56,6 +60,7 @@ class NXxrdctPaths:
 
     nx_sample_paths = NXSamplePaths()
     nx_detector_paths = NXDetectorPaths()
+    nx_data_paths = NXDataPaths()
     nx_source_paths = NXSourcePaths()
     nx_monitor_paths = NXMonitorPaths()
     nx_beam_paths = NXBeamPaths()
