@@ -8,10 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- None.
+- `entry/data@default_slice` so viewers open on the sinogram (translation vs rotation).
 
 ### Changed
-- None.
+- `NXxrdct.save()` raises `ValueError` if the data is not 3D or if an axis is missing/not the correct length.
 
 ### Deprecated
 - None.
