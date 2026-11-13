@@ -22,6 +22,7 @@ def _build_nxxrdct():
     nx.instrument.source.probe = "x-ray"
     nx.instrument.monochromator.wavelength = 0.184 * ureg.nanometer
     nx.instrument.detector.polar_angle = np.array([1.0, 2.0, 3.0]) * ureg.degree
+    nx.instrument.detector.data = h5py.ExternalLink("raw.h5", "/entry/data")
     nx.data.radial_axis = np.linspace(1.0, 4.0, 4) * ureg.degree
     nx.data.radial_axis_long_name = "2theta"
     nx.control.mode = "monitor"
@@ -155,3 +156,23 @@ def test_round_trip_load(tmp_path):
     assert loaded.data.intensity_errors is not None
     assert loaded.data.radial_axis is not None
     assert loaded.data.radial_axis_long_name == "2theta"
+
+
+def test_detector_data_link_survives_save_and_load(tmp_path):
+    file_path = tmp_path / "entry.nxs"
+    _build_nxxrdct().save(str(file_path), data_path="entry")
+    with h5py.File(file_path, "r") as h5f:
+        link = h5f.get("entry/instrument/detector/data", getlink=True)
+        assert isinstance(link, h5py.ExternalLink)
+        assert (link.filename, link.path) == ("raw.h5", "/entry/data")
+
+    loaded = NXxrdct().load(str(file_path), "entry")
+    link = loaded.instrument.detector.data
+    assert isinstance(link, h5py.ExternalLink)
+    assert (link.filename, link.path) == ("raw.h5", "/entry/data")
+
+
+def test_detector_data_rejects_array():
+    nx = NXxrdct()
+    with pytest.raises(TypeError):
+        nx.instrument.detector.data = np.zeros((2, 4, 5))
