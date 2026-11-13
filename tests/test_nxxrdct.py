@@ -22,12 +22,13 @@ def _build_nxxrdct():
     nx.instrument.source.probe = "x-ray"
     nx.instrument.monochromator.wavelength = 0.184 * ureg.nanometer
     nx.instrument.detector.polar_angle = np.array([1.0, 2.0, 3.0]) * ureg.degree
-    nx.instrument.detector.radial_axis = np.linspace(1.0, 4.0, 4) * ureg.degree
-    nx.instrument.detector.radial_axis_long_name = "2theta"
+    nx.data.radial_axis = np.linspace(1.0, 4.0, 4) * ureg.degree
+    nx.data.radial_axis_long_name = "2theta"
     nx.control.mode = "monitor"
     nx.control.preset = 1.0
     nx.control.integral = 42.0
-    nx.instrument.detector.data = np.zeros((2, 3, 4))
+    nx.data.intensity = np.zeros((2, 3, 4))
+    nx.data.intensity_errors = np.ones((2, 3, 4))
     return nx
 
 
@@ -46,7 +47,8 @@ def test_save_builds_expected_structure(tmp_path):
         assert "data" in entry
         data_group = entry["data"]
         assert data_group.attrs["NX_class"] in ("NXdata", b"NXdata")
-        assert data_group.attrs["signal"] in ("intensity", b"intensity")
+        assert data_group.attrs["signal"] in ("I", b"I")
+        assert data_group.attrs["interpretation"] == "image"
         np.testing.assert_array_equal(
             data_group.attrs["axes"],
             ["translation_values", "rotation_angles", "radial_axis"],
@@ -54,11 +56,11 @@ def test_save_builds_expected_structure(tmp_path):
         np.testing.assert_array_equal(
             data_group.attrs["default_slice"], [".", ".", "0"]
         )
-        assert "intensity" in data_group
-        assert isinstance(data_group.get("intensity", getlink=True), h5py.SoftLink)
-        np.testing.assert_array_equal(
-            data_group["intensity"][()], entry["instrument"]["detector"]["data"][()]
-        )
+        assert isinstance(data_group.get("I", getlink=True), h5py.HardLink)
+        assert data_group["I"].shape == (2, 3, 4)
+        assert data_group["I"].attrs["long_name"] == "intensity"
+        assert data_group["I"].attrs["units"] == "arbitrary units"
+        assert data_group["radial_axis"].attrs["long_name"] == "2theta"
 
         assert "sample" in entry
         assert "translation_values" in entry["sample"]
@@ -66,9 +68,7 @@ def test_save_builds_expected_structure(tmp_path):
 
         assert "instrument" in entry
         assert "detector" in entry["instrument"]
-        assert "data" in entry["instrument"]["detector"]
         assert "polar_angle" in entry["instrument"]["detector"]
-        assert "radial_axis" in entry["instrument"]["detector"]
 
         assert "control" in entry
         assert "mode" in entry["control"]
@@ -96,8 +96,26 @@ def test_save_rejects_2d_axis(tmp_path):
 
 def test_save_rejects_data_not_3d(tmp_path):
     nx = _build_nxxrdct()
-    nx.instrument.detector.data = np.zeros((3, 4))
-    message = "Intensity data must be 3D, but the given data is 2D with shape (3, 4)."
+    nx.data.intensity = np.zeros((3, 4))
+    message = "Intensity data must be 3D, but the given shape is (3, 4)."
+    with pytest.raises(ValueError, match=re.escape(message)):
+        nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
+
+
+def test_save_rejects_missing_intensity(tmp_path):
+    nx = _build_nxxrdct()
+    nx.data.intensity = None
+    message = "Intensity data must be 3D, but the given shape is None."
+    with pytest.raises(ValueError, match=re.escape(message)):
+        nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
+
+
+def test_save_rejects_intensity_errors_shape(tmp_path):
+    nx = _build_nxxrdct()
+    nx.data.intensity_errors = np.zeros((2, 3))
+    message = (
+        "intensity_errors must have shape (2, 3, 4), but the given shape is (2, 3)."
+    )
     with pytest.raises(ValueError, match=re.escape(message)):
         nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
 
@@ -131,7 +149,9 @@ def test_round_trip_load(tmp_path):
     assert loaded.instrument is not None
     assert loaded.instrument.detector is not None
     assert loaded.instrument.detector.polar_angle is not None
-    assert loaded.instrument.detector.radial_axis is not None
     assert loaded.control is not None
     assert loaded.control.mode == "monitor"
-    assert loaded.instrument.detector.data is not None
+    assert loaded.data.intensity is not None
+    assert loaded.data.intensity_errors is not None
+    assert loaded.data.radial_axis is not None
+    assert loaded.data.radial_axis_long_name == "2theta"

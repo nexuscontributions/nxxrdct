@@ -1,6 +1,7 @@
 import numpy as np
 import pint
 
+from nxxrdct.nxobject.nxdata import NXdata
 from nxxrdct.nxobject.nxdetector import NXdetector
 from nxxrdct.nxobject.nxinstrument import NXinstrument
 from nxxrdct.nxobject.nxmonitor import NXmonitor
@@ -29,13 +30,26 @@ def test_nxdetector_to_nx_dict():
     detector.data = np.zeros((2, 2))
     detector.polar_angle = np.array([1.0, 2.0]) * ureg.degree
     detector.distance = 0.5 * ureg.meter
-    detector.radial_axis = np.array([1.0, 2.0, 3.0]) / ureg.angstrom
-    detector.radial_axis_long_name = "q"
     nx_dict = detector.to_nx_dict()
     assert f"{detector.path}/data" in nx_dict
     assert f"{detector.path}/polar_angle" in nx_dict
     assert f"{detector.path}/distance" in nx_dict
-    assert f"{detector.path}/radial_axis" in nx_dict
+
+
+def test_nxdata_to_nx_dict():
+    ureg = pint.get_application_registry()
+    data = NXdata()
+    data.intensity = np.zeros((2, 2, 3))
+    data.intensity_errors = np.zeros((2, 2, 3))
+    data.radial_axis = np.array([1.0, 2.0, 3.0]) / ureg.angstrom
+    data.radial_axis_long_name = "q"
+    nx_dict = data.to_nx_dict()
+    assert f"{data.path}/I" in nx_dict
+    assert f"{data.path}/I_errors" in nx_dict
+    assert f"{data.path}/radial_axis" in nx_dict
+    assert nx_dict[f"{data.path}@signal"] == "I"
+    assert nx_dict[f"{data.path}@interpretation"] == "image"
+    assert nx_dict[f"{data.path}/radial_axis@long_name"] == "q"
 
 
 def test_nxsource_to_nx_dict():

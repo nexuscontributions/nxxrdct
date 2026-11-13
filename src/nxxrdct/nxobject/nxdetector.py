@@ -11,17 +11,10 @@ import pint
 
 from nxxrdct.nxobject.nxobject import NXobject
 from nxxrdct.paths.nxxrdct import get_paths
-from nxxrdct.utils import get_attribute
 from nxxrdct.utils import get_data
 from nxxrdct.utils import get_quantity
 
 _ureg = pint.get_application_registry()
-
-# first unit of each entry is the default
-RADIAL_AXIS_UNITS = {
-    "2theta": (_ureg.degree, _ureg.radian),
-    "q": ((1 / _ureg.angstrom).units, (1 / _ureg.nanometer).units),
-}
 
 
 def _coerce_quantity(value, unit: pint.Unit):
@@ -30,22 +23,6 @@ def _coerce_quantity(value, unit: pint.Unit):
     if isinstance(value, pint.Quantity):
         return value
     return numpy.asarray(value) * unit
-
-
-def _coerce_radial_axis(value, long_name: str) -> pint.Quantity:
-    """Keep supported units as given; convert other compatible units to the default."""
-    supported_units = RADIAL_AXIS_UNITS[long_name]
-    quantity = _coerce_quantity(value, supported_units[0])
-    if quantity.units in supported_units:
-        return quantity
-    try:
-        return quantity.to(supported_units[0])
-    except pint.DimensionalityError as err:
-        raise ValueError(
-            f"radial_axis units '{quantity.units}' are incompatible "
-            f"with radial_axis_long_name {long_name!r} "
-            f"(expected one of {tuple(str(unit) for unit in supported_units)})"
-        ) from err
 
 
 class NXdetector(NXobject):
@@ -58,14 +35,11 @@ class NXdetector(NXobject):
         self._distance = None
         self._x_pixel_size = None
         self._y_pixel_size = None
-        self._radial_axis = None
-        self._radial_axis_long_name = None
         self._set_freeze(True)
 
     @property
     def data(self):
-        """Azimuthally integrated intensity on a regular grid;
-        shape (nTrans, nRot, nRadialBins)"""
+        """Raw detector data (optional)"""
         return self._data
 
     @data.setter
@@ -112,40 +86,57 @@ class NXdetector(NXobject):
     def y_pixel_size(self, value):
         self._y_pixel_size = _coerce_quantity(value, _ureg.meter)
 
-    # --- Deprecate diffraction_channel ---
+    def _entry_data(self):
+        instrument = self.parent
+        entry = instrument.parent if instrument is not None else None
+        if entry is None:
+            raise ValueError(
+                "Deprecated radial-axis names on the detector only work when they"
+                " are part of an NXxrdct entry. Use NXxrdct.data.radial_axis and"
+                " NXxrdct.data.radial_axis_long_name instead."
+            )
+        return entry.data
+
+    # --- Deprecate radial axis on the detector ---
     @property
     def diffraction_channel(self):
-        return self._radial_axis
+        return self._entry_data().radial_axis
 
     @diffraction_channel.setter
     def diffraction_channel(self, value):
         warnings.warn(
-            "'diffraction_channel' is deprecated; use 'radial_axis' instead.",
+            "'diffraction_channel' is deprecated; use 'data.radial_axis' instead.",
             DeprecationWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
-        self._radial_axis = value
+        self._entry_data().radial_axis = value
 
     @property
     def radial_axis(self):
-        return self._radial_axis
+        return self._entry_data().radial_axis
 
     @radial_axis.setter
     def radial_axis(self, value):
-        self._radial_axis = value
+        warnings.warn(
+            "'detector.radial_axis' is deprecated; use 'data.radial_axis' instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        self._entry_data().radial_axis = value
 
     @property
     def radial_axis_long_name(self) -> str | None:
-        return self._radial_axis_long_name
+        return self._entry_data().radial_axis_long_name
 
     @radial_axis_long_name.setter
     def radial_axis_long_name(self, value: str | None):
-        if value is not None and value not in RADIAL_AXIS_UNITS:
-            raise ValueError(
-                "radial_axis_long_name must be one of "
-                f"{tuple(RADIAL_AXIS_UNITS)}, got {value!r}"
-            )
-        self._radial_axis_long_name = value
+        warnings.warn(
+            "'detector.radial_axis_long_name' is deprecated;"
+            " use 'data.radial_axis_long_name' instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        self._entry_data().radial_axis_long_name = value
 
     def to_nx_dict(
         self,
@@ -179,22 +170,6 @@ class NXdetector(NXobject):
             path = f"{self.path}/{detector_paths.Y_PIXEL_SIZE}"
             nx_dict[path] = self.y_pixel_size.magnitude
             nx_dict[f"{path}@units"] = f"{self.y_pixel_size.units:~}"
-        if self.radial_axis is not None:
-            if self.radial_axis_long_name is None:
-                raise ValueError(
-                    "radial_axis_long_name must be set when radial_axis is given, "
-                    f"one of {tuple(RADIAL_AXIS_UNITS)}"
-                )
-            path = f"{self.path}/{detector_paths.RADIAL_AXIS}"
-            radial_axis = _coerce_radial_axis(
-                self.radial_axis, self.radial_axis_long_name
-            )
-            nx_dict[path] = radial_axis.magnitude
-            nx_dict[f"{path}@units"] = f"{radial_axis.units:~}"
-            # silx shows long_name in place of the units, so the label carries them
-            nx_dict[f"{path}@long_name"] = (
-                f"{self.radial_axis_long_name} ({radial_axis.units:~})"
-            )
 
         if nx_dict:
             nx_dict[f"{self.path}@NX_class"] = "NXdetector"
@@ -230,15 +205,3 @@ class NXdetector(NXobject):
             "/".join([data_path, detector_paths.Y_PIXEL_SIZE]),
             default_unit=_ureg.meter,
         )
-        radial_axis_path = "/".join([data_path, detector_paths.RADIAL_AXIS])
-        long_name = get_attribute(file_path, radial_axis_path, "long_name")
-        if long_name is not None:
-            self.radial_axis_long_name = long_name.split(" (")[0]
-            self.radial_axis = get_quantity(
-                file_path,
-                radial_axis_path,
-                default_unit=RADIAL_AXIS_UNITS[self.radial_axis_long_name][0],
-            )
-        else:
-            self.radial_axis_long_name = None
-            self.radial_axis = get_data(file_path, radial_axis_path)

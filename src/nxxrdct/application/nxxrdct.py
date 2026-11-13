@@ -12,6 +12,7 @@ import numpy as np
 from silx.io.utils import open as hdf5_open
 
 from nxxrdct.nxobject.nxbeam import NXbeam
+from nxxrdct.nxobject.nxdata import NXdata
 from nxxrdct.nxobject.nxinstrument import NXinstrument
 from nxxrdct.nxobject.nxmonitor import NXmonitor
 from nxxrdct.nxobject.nxobject import NXobject
@@ -40,6 +41,7 @@ class NXxrdct(NXobject):
         self._instrument = NXinstrument(node_name="instrument", parent=self)
         self._sample = NXsample(node_name="sample", parent=self)
         self._control = NXmonitor(node_name="control", parent=self)
+        self._data = NXdata(node_name="data", parent=self)
         self._set_freeze(True)
 
     @property
@@ -76,20 +78,6 @@ class NXxrdct(NXobject):
         if not isinstance(value, (type(None), str)):
             raise TypeError(f"title is expected to be str or None. Not {type(value)}")
         self._title = value
-
-    # --- Deprecate intensity ---
-    @property
-    def intensity(self):
-        return self.instrument.detector.data
-
-    @intensity.setter
-    def intensity(self, value):
-        warnings.warn(
-            "'intensity' is deprecated; use 'instrument.detector.data' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.instrument.detector.data = value
 
     @property
     def beam(self) -> NXbeam | None:
@@ -140,6 +128,30 @@ class NXxrdct(NXobject):
             )
         self._control = value
 
+    @property
+    def data(self) -> NXdata:
+        return self._data
+
+    @data.setter
+    def data(self, value: NXdata) -> None:
+        if not isinstance(value, NXdata):
+            raise TypeError(f"data is expected to be {NXdata}. Not {type(value)}")
+        self._data = value
+
+    # --- Deprecate intensity ---
+    @property
+    def intensity(self):
+        return self.data.intensity
+
+    @intensity.setter
+    def intensity(self, value):
+        warnings.warn(
+            "'intensity' is deprecated; use 'data.intensity' instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        self.data.intensity = value
+
     def to_nx_dict(
         self,
         nexus_path_version: float | None = None,
@@ -154,22 +166,25 @@ class NXxrdct(NXobject):
         if self.sample is not None:
             nx_dict.update(self.sample.to_nx_dict(nexus_path_version))
         else:
-            _logger.info("no sample found. Won't be saved")
+            _logger.info("No sample found, so the sample will not be saved.")
 
         if self.instrument is not None:
             nx_dict.update(self.instrument.to_nx_dict(nexus_path_version))
         else:
-            _logger.info("no instrument found. Won't be saved")
+            _logger.info("No instrument found, so the instrument will not be saved.")
 
         if self.control is not None:
             nx_dict.update(self.control.to_nx_dict(nexus_path_version))
         else:
-            _logger.info("no control found. Won't be saved")
+            _logger.info("No control found, so the monitor data will not be saved.")
 
         if self.beam is not None:
             nx_dict.update(self.beam.to_nx_dict(nexus_path_version))
         else:
-            _logger.info("no beam found. Won't be saved")
+            _logger.info("No beam found, so the beam will not be saved.")
+
+        # data is required, so it is never None
+        nx_dict.update(self.data.to_nx_dict(nexus_path_version))
 
         if self.start_time is not None:
             path = f"{self.path}/{nexus_paths.START_TIME_PATH}"
@@ -191,58 +206,47 @@ class NXxrdct(NXobject):
             path_title = f"{self.path}/{nexus_paths.NAME_PATH}"
             nx_dict[path_title] = self.title
 
-        if self.instrument.detector.data is not None:
-            data_path_group = f"{self.path}/{nexus_paths.DATA_GROUP}"
-            detector_data_path = (
-                f"/{data_path}/{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.DATA}"
-            ).replace("//", "/")
-            nx_dict[f">/{data_path_group}/intensity"] = detector_data_path
-            nx_dict[f"{data_path_group}@NX_class"] = "NXdata"
-            nx_dict[f"{data_path_group}@signal"] = "intensity"
-            nx_dict[f"{self.path}@default"] = nexus_paths.DATA_GROUP
+        nx_dict[f"{self.path}@default"] = nexus_paths.DATA_GROUP
 
-            # intensity is (nTrans, nRot, nRad)
-            shape = np.shape(self.instrument.detector.data)
-            if len(shape) != 3:
+        # intensity is (nTrans, nRot, nRad)
+        intensity = self.data.intensity
+        if intensity is None or np.ndim(intensity) != 3:
+            intensity_shape = None if intensity is None else np.shape(intensity)
+            raise ValueError(
+                f"Intensity data must be 3D, but the given shape is {intensity_shape}."
+            )
+        shape = np.shape(intensity)
+        errors = self.data.intensity_errors
+        if errors is not None and np.shape(errors) != shape:
+            raise ValueError(
+                f"intensity_errors must have shape {shape},"
+                f" but the given shape is {np.shape(errors)}."
+            )
+        if self.sample is None:
+            raise ValueError(
+                "Both translation_values and rotation_angles are required."
+            )
+        sample_paths = nexus_paths.nx_sample_paths
+        dim_axes = [
+            (sample_paths.TRANSLATION_VALUES, self.sample.translation_values),
+            (sample_paths.ROTATION_ANGLES, self.sample.rotation_angles),
+            (nexus_paths.nx_data_paths.RADIAL_AXIS, self.data.radial_axis),
+        ]
+        axes_vals = []
+        for dim, (name, values) in enumerate(dim_axes):
+            if values is None or np.shape(values) != (shape[dim],):
+                values_shape = None if values is None else np.shape(values)
                 raise ValueError(
-                    f"Intensity data must be 3D, but the given data is {len(shape)}D"
-                    f" with shape {shape}."
+                    f"{name} must be 1D with length {shape[dim]},"
+                    f" but the given shape is {values_shape}."
                 )
-            if self.sample is None:
-                raise ValueError(
-                    "Both translation_values and rotation_angles are required."
-                )
-            dim_axes = [
-                (
-                    "translation_values",
-                    self.sample.translation_values,
-                    f"{self.sample.path}/{nexus_paths.nx_sample_paths.TRANSLATION_VALUES}",
-                ),
-                (
-                    "rotation_angles",
-                    self.sample.rotation_angles,
-                    f"{self.sample.path}/{nexus_paths.nx_sample_paths.ROTATION_ANGLES}",
-                ),
-                (
-                    "radial_axis",
-                    self.instrument.detector.radial_axis,
-                    f"{self.instrument.detector.path}/{nexus_paths.nx_detector_paths.RADIAL_AXIS}",
-                ),
-            ]
-            axes_vals = []
-            for dim, (name, values, path) in enumerate(dim_axes):
-                if values is None or np.shape(values) != (shape[dim],):
-                    values_shape = None if values is None else np.shape(values)
-                    raise ValueError(
-                        f"{name} must be 1D with length {shape[dim]},"
-                        f" but the given shape is {values_shape}."
-                    )
-                nx_dict[f">/{data_path_group}/{name}"] = f"/{data_path}/{path}".replace(
-                    "//", "/"
-                )
-                axes_vals.append(name)
-            nx_dict[f"{data_path_group}@axes"] = axes_vals
-            nx_dict[f"{data_path_group}@default_slice"] = [".", ".", "0"]
+            axes_vals.append(name)
+        for name in (sample_paths.TRANSLATION_VALUES, sample_paths.ROTATION_ANGLES):
+            nx_dict[f">/{self.data.path}/{name}"] = (
+                f"/{data_path}/{self.sample.path}/{name}".replace("//", "/")
+            )
+        nx_dict[f"{self.data.path}@axes"] = axes_vals
+        nx_dict[f"{self.data.path}@default_slice"] = [".", ".", "0"]
 
         if nx_dict:
             nx_dict[f"{self.path}@NX_class"] = "NXentry"
@@ -311,6 +315,11 @@ class NXxrdct(NXobject):
             self.control._load(
                 file_path, "/".join([data_path, "control"]), nexus_version=nexus_version
             )
+        self.data._load(
+            file_path,
+            "/".join([data_path, nexus_paths.DATA_GROUP]),
+            nexus_version=nexus_version,
+        )
         return self
 
     def save(
