@@ -12,6 +12,7 @@ _ureg = pint.get_application_registry()
 __all__ = [
     "get_attribute",
     "get_data",
+    "get_link",
     "get_quantity",
 ]
 
@@ -55,6 +56,15 @@ def get_data(file_path: str, data_path: str):
         if data_path in h5f:
             return h5py_read_dataset(h5f[data_path])
     return None
+
+
+def get_link(file_path: str, data_path: str):
+    """
+    Return the link at `data_path` without following it (for example an
+    h5py.ExternalLink), or None when missing.
+    """
+    with hdf5_open(file_path) as h5f:
+        return h5f.get(data_path, getlink=True)
 
 
 def get_attribute(file_path: str, data_path: str, name: str):
