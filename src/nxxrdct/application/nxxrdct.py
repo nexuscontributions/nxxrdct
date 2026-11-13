@@ -129,15 +129,13 @@ class NXxrdct(NXobject):
         self._control = value
 
     @property
-    def data(self) -> NXdata | None:
+    def data(self) -> NXdata:
         return self._data
 
     @data.setter
-    def data(self, value: NXdata | None) -> None:
-        if not isinstance(value, (type(None), NXdata)):
-            raise TypeError(
-                f"data is expected to be {NXdata} or None. Not {type(value)}"
-            )
+    def data(self, value: NXdata) -> None:
+        if not isinstance(value, NXdata):
+            raise TypeError(f"data is expected to be {NXdata}. Not {type(value)}")
         self._data = value
 
     # --- Deprecate intensity ---
@@ -185,12 +183,8 @@ class NXxrdct(NXobject):
         else:
             _logger.info("No beam found, so the beam will not be saved.")
 
-        if self.data is not None:
-            nx_dict.update(self.data.to_nx_dict(nexus_path_version))
-        else:
-            _logger.info(
-                "No data group found, so the integrated data will not be saved."
-            )
+        # data is required, so it is never None
+        nx_dict.update(self.data.to_nx_dict(nexus_path_version))
 
         if self.start_time is not None:
             path = f"{self.path}/{nexus_paths.START_TIME_PATH}"
@@ -212,49 +206,47 @@ class NXxrdct(NXobject):
             path_title = f"{self.path}/{nexus_paths.NAME_PATH}"
             nx_dict[path_title] = self.title
 
-        if self.data is not None and self.data.intensity is not None:
-            nx_dict[f"{self.path}@default"] = nexus_paths.DATA_GROUP
+        nx_dict[f"{self.path}@default"] = nexus_paths.DATA_GROUP
 
-            # intensity is (nTrans, nRot, nRad)
-            shape = np.shape(self.data.intensity)
-            if len(shape) != 3:
+        # intensity is (nTrans, nRot, nRad)
+        intensity = self.data.intensity
+        if intensity is None or np.ndim(intensity) != 3:
+            intensity_shape = None if intensity is None else np.shape(intensity)
+            raise ValueError(
+                f"Intensity data must be 3D, but the given shape is {intensity_shape}."
+            )
+        shape = np.shape(intensity)
+        errors = self.data.intensity_errors
+        if errors is not None and np.shape(errors) != shape:
+            raise ValueError(
+                f"intensity_errors must have shape {shape},"
+                f" but the given shape is {np.shape(errors)}."
+            )
+        if self.sample is None:
+            raise ValueError(
+                "Both translation_values and rotation_angles are required."
+            )
+        sample_paths = nexus_paths.nx_sample_paths
+        dim_axes = [
+            (sample_paths.TRANSLATION_VALUES, self.sample.translation_values),
+            (sample_paths.ROTATION_ANGLES, self.sample.rotation_angles),
+            (nexus_paths.nx_data_paths.RADIAL_AXIS, self.data.radial_axis),
+        ]
+        axes_vals = []
+        for dim, (name, values) in enumerate(dim_axes):
+            if values is None or np.shape(values) != (shape[dim],):
+                values_shape = None if values is None else np.shape(values)
                 raise ValueError(
-                    f"Intensity data must be 3D, but the given data is {len(shape)}D"
-                    f" with shape {shape}."
+                    f"{name} must be 1D with length {shape[dim]},"
+                    f" but the given shape is {values_shape}."
                 )
-            errors = self.data.intensity_errors
-            if errors is not None and np.shape(errors) != shape:
-                raise ValueError(
-                    f"intensity_errors must have shape {shape},"
-                    f" but the given shape is {np.shape(errors)}."
-                )
-            if self.sample is None:
-                raise ValueError(
-                    "Both translation_values and rotation_angles are required."
-                )
-            dim_axes = [
-                ("translation_values", self.sample.translation_values),
-                ("rotation_angles", self.sample.rotation_angles),
-                ("radial_axis", self.data.radial_axis),
-            ]
-            axes_vals = []
-            for dim, (name, values) in enumerate(dim_axes):
-                if values is None or np.shape(values) != (shape[dim],):
-                    values_shape = None if values is None else np.shape(values)
-                    raise ValueError(
-                        f"{name} must be 1D with length {shape[dim]},"
-                        f" but the given shape is {values_shape}."
-                    )
-                axes_vals.append(name)
-            for name in (
-                nexus_paths.nx_sample_paths.TRANSLATION_VALUES,
-                nexus_paths.nx_sample_paths.ROTATION_ANGLES,
-            ):
-                nx_dict[f">/{self.data.path}/{name}"] = (
-                    f"/{data_path}/{self.sample.path}/{name}".replace("//", "/")
-                )
-            nx_dict[f"{self.data.path}@axes"] = axes_vals
-            nx_dict[f"{self.data.path}@default_slice"] = [".", ".", "0"]
+            axes_vals.append(name)
+        for name in (sample_paths.TRANSLATION_VALUES, sample_paths.ROTATION_ANGLES):
+            nx_dict[f">/{self.data.path}/{name}"] = (
+                f"/{data_path}/{self.sample.path}/{name}".replace("//", "/")
+            )
+        nx_dict[f"{self.data.path}@axes"] = axes_vals
+        nx_dict[f"{self.data.path}@default_slice"] = [".", ".", "0"]
 
         if nx_dict:
             nx_dict[f"{self.path}@NX_class"] = "NXentry"
@@ -323,12 +315,11 @@ class NXxrdct(NXobject):
             self.control._load(
                 file_path, "/".join([data_path, "control"]), nexus_version=nexus_version
             )
-        if self.data is not None:
-            self.data._load(
-                file_path,
-                "/".join([data_path, nexus_paths.DATA_GROUP]),
-                nexus_version=nexus_version,
-            )
+        self.data._load(
+            file_path,
+            "/".join([data_path, nexus_paths.DATA_GROUP]),
+            nexus_version=nexus_version,
+        )
         return self
 
     def save(

@@ -48,6 +48,7 @@ def test_save_builds_expected_structure(tmp_path):
         data_group = entry["data"]
         assert data_group.attrs["NX_class"] in ("NXdata", b"NXdata")
         assert data_group.attrs["signal"] in ("I", b"I")
+        assert data_group.attrs["interpretation"] == "image"
         np.testing.assert_array_equal(
             data_group.attrs["axes"],
             ["translation_values", "rotation_angles", "radial_axis"],
@@ -96,7 +97,15 @@ def test_save_rejects_2d_axis(tmp_path):
 def test_save_rejects_data_not_3d(tmp_path):
     nx = _build_nxxrdct()
     nx.data.intensity = np.zeros((3, 4))
-    message = "Intensity data must be 3D, but the given data is 2D with shape (3, 4)."
+    message = "Intensity data must be 3D, but the given shape is (3, 4)."
+    with pytest.raises(ValueError, match=re.escape(message)):
+        nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
+
+
+def test_save_rejects_missing_intensity(tmp_path):
+    nx = _build_nxxrdct()
+    nx.data.intensity = None
+    message = "Intensity data must be 3D, but the given shape is None."
     with pytest.raises(ValueError, match=re.escape(message)):
         nx.save(str(tmp_path / "bad.nxs"), data_path="entry")
 

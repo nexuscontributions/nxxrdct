@@ -89,10 +89,11 @@ class NXdetector(NXobject):
     def _entry_data(self):
         instrument = self.parent
         entry = instrument.parent if instrument is not None else None
-        if entry is None or getattr(entry, "data", None) is None:
-            raise AttributeError(
-                "This detector is not part of an NXxrdct entry, so the"
-                " radial axis cannot be forwarded to its data group."
+        if entry is None:
+            raise ValueError(
+                "Deprecated radial-axis names on the detector only work when they"
+                " are part of an NXxrdct entry. Use NXxrdct.data.radial_axis and"
+                " NXxrdct.data.radial_axis_long_name instead."
             )
         return entry.data
 
