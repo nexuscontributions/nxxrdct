@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `entry/data@default_slice` so viewers open on the sinogram (translation vs rotation).
+- `entry/data@interpretation` to follow `NXazint`.
 - `NXxrdct.data` (`NXdata` class) with `intensity`, `intensity_errors`, `radial_axis`, and `radial_axis_long_name`.
 - Optional intensity errors (`NXxrdct.data.intensity_errors`) is stored in `data/I_errors`.
 
 ### Changed
-- `NXxrdct.save()` raises `ValueError` if the data is not 3D, if `intensity_errors` does not have the same shape as the data, or if an axis is missing or not the correct length.
+- `NXxrdct.save()` raises `ValueError` if:
+  - `data.intensity` is missing or not 3D.
+  - `data.intensity_errors` does not have the same shape as `data.intensity`.
+  - An axis is missing or has the wrong length.
 - Integrated data is stored in `data/I` instead of `instrument/detector/data`.
 - The radial axis is stored in `data/radial_axis` instead of `instrument/detector/radial_axis`.
 - `instrument/detector/data` is now an optional place for raw detector data.
