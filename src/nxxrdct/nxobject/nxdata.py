@@ -112,6 +112,7 @@ class NXdata(NXobject):
             nx_dict[f"{path}@long_name"] = "intensity"
             nx_dict[f"{path}@units"] = "arbitrary units"
             nx_dict[f"{self.path}@signal"] = data_paths.INTENSITY
+            nx_dict[f"{self.path}@interpretation"] = "image"
         if self.intensity_errors is not None:
             path = f"{self.path}/{data_paths.INTENSITY_ERRORS}"
             nx_dict[path] = self.intensity_errors

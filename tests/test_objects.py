@@ -48,6 +48,7 @@ def test_nxdata_to_nx_dict():
     assert f"{data.path}/I_errors" in nx_dict
     assert f"{data.path}/radial_axis" in nx_dict
     assert nx_dict[f"{data.path}@signal"] == "I"
+    assert nx_dict[f"{data.path}@interpretation"] == "image"
     assert nx_dict[f"{data.path}/radial_axis@long_name"] == "q"
 
 
