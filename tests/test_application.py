@@ -86,6 +86,38 @@ def test_copy_all_entries_when_none(tmp_path):
         assert "entry2" in h5f
 
 
+def test_copy_rewrites_relative_detector_link(tmp_path):
+    # Create the raw file that the external link points to
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    with h5py.File(raw_dir / "scan.h5", mode="w") as h5f:
+        h5f["entry/data"] = np.arange(4)
+
+    # Save an NXxrdct file with a relative external link to the raw data
+    file_path = tmp_path / "entry.nxs"
+    nx = _build_entry()
+    nx.instrument.detector.data = h5py.ExternalLink("raw/scan.h5", "/entry/data")
+    nx.save(str(file_path), data_path="entry")
+
+    # Copy the file into a subfolder, so the relative link must be rewritten
+    out_dir = tmp_path / "out" / "sub"
+    out_dir.mkdir(parents=True)
+    out_path = out_dir / "copy.nxs"
+    copy_nxxrdct_file(
+        input_file=str(file_path),
+        output_file=str(out_path),
+        entries=("/entry",),
+    )
+
+    # Check that the link was rewritten and still points to the raw data
+    with h5py.File(out_path, mode="r") as h5f:
+        link = h5f.get("entry/instrument/detector/data", getlink=True)
+        assert link.filename == "../../raw/scan.h5"
+        np.testing.assert_array_equal(
+            h5f["entry/instrument/detector/data"][()], np.arange(4)
+        )
+
+
 def test_node_is_nxxrdct_definition(tmp_path):
     file_path = tmp_path / "def.nxs"
     with h5py.File(file_path, mode="w") as h5f:
