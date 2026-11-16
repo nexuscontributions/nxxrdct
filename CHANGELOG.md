@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - An axis is missing or has the wrong length.
 - Integrated data is stored in `data/I` instead of `instrument/detector/data`.
 - The radial axis is stored in `data/radial_axis` instead of `instrument/detector/radial_axis`.
-- `instrument/detector/data` is now an optional place for raw detector data.
+- `instrument/detector/data` is now an optional external link to the raw detector images.
 - `radial_axis@long_name` can now only be `2theta` or `q` to follow `NXazint1d`.
 
 ### Deprecated

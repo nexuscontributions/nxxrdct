@@ -1,3 +1,4 @@
+import h5py
 import numpy as np
 import pint
 
@@ -27,11 +28,11 @@ def test_nxsample_to_nx_dict():
 def test_nxdetector_to_nx_dict():
     ureg = pint.get_application_registry()
     detector = NXdetector()
-    detector.data = np.zeros((2, 2))
+    detector.data = h5py.ExternalLink("raw.h5", "/entry/data")
     detector.polar_angle = np.array([1.0, 2.0]) * ureg.degree
     detector.distance = 0.5 * ureg.meter
     nx_dict = detector.to_nx_dict()
-    assert f"{detector.path}/data" in nx_dict
+    assert nx_dict[f"{detector.path}/data"] is detector.data
     assert f"{detector.path}/polar_angle" in nx_dict
     assert f"{detector.path}/distance" in nx_dict
 
@@ -89,7 +90,7 @@ def test_nxinstrument_to_nx_dict_includes_children():
     instrument.monochromator.wavelength = (
         0.1 * pint.get_application_registry().nanometer
     )
-    instrument.detector.data = np.zeros((1, 1))
+    instrument.detector.data = h5py.ExternalLink("raw.h5", "/entry/data")
     nx_dict = instrument.to_nx_dict()
     assert f"{instrument.path}/name" in nx_dict
     assert f"{instrument.path}@NX_class" in nx_dict

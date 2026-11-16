@@ -4,16 +4,19 @@ Module for handling an NXdetector.
 
 from __future__ import annotations
 
+import logging
 import warnings
 
+import h5py
 import numpy
 import pint
 
 from nxxrdct.nxobject.nxobject import NXobject
 from nxxrdct.paths.nxxrdct import get_paths
-from nxxrdct.utils import get_data
+from nxxrdct.utils import get_link
 from nxxrdct.utils import get_quantity
 
+_logger = logging.getLogger(__name__)
 _ureg = pint.get_application_registry()
 
 
@@ -39,12 +42,17 @@ class NXdetector(NXobject):
 
     @property
     def data(self):
-        """Raw detector data (optional)"""
+        """Optional link to the raw detector images, as an h5py.ExternalLink."""
         return self._data
 
     @data.setter
-    def data(self, data):
-        self._data = data
+    def data(self, value: h5py.ExternalLink | None):
+        if not isinstance(value, (type(None), h5py.ExternalLink)):
+            raise TypeError(
+                "data is expected to be an h5py.ExternalLink or None, but its type"
+                f" is {type(value).__name__}."
+            )
+        self._data = value
 
     @property
     def polar_angle(self):
@@ -179,7 +187,17 @@ class NXdetector(NXobject):
         nexus_paths = get_paths(nexus_version)
         detector_paths = nexus_paths.nx_detector_paths
 
-        self.data = get_data(file_path, "/".join([data_path, detector_paths.DATA]))
+        detector_data_path = "/".join([data_path, detector_paths.DATA])
+        link = get_link(file_path, detector_data_path)
+        if isinstance(link, h5py.ExternalLink):
+            self.data = link
+        else:
+            self.data = None
+            if link is not None:
+                _logger.warning(
+                    f"{detector_data_path} is not an external link, so it was"
+                    " not loaded."
+                )
         self.polar_angle = get_quantity(
             file_path,
             "/".join([data_path, detector_paths.POLAR_ANGLE]),

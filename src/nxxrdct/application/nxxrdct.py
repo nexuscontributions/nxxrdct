@@ -392,6 +392,19 @@ def copy_nxxrdct_file(
         if len(entries) == 0:
             _logger.warning(f"no valid entries for {input_file}")
 
+    output_dir = os.path.dirname(output_file)
     for entry in entries:
         nx_xrdct = NXxrdct().load(input_file, entry)
+        link = nx_xrdct.instrument.detector.data
+        if link is not None and not os.path.isabs(link.filename):
+            target = os.path.join(os.path.dirname(input_file), link.filename)
+            if os.path.exists(target):
+                nx_xrdct.instrument.detector.data = h5py.ExternalLink(
+                    os.path.relpath(target, output_dir), link.path
+                )
+            else:
+                _logger.warning(
+                    f"The raw detector file {target} was not found, so the link"
+                    " was copied unchanged."
+                )
         nx_xrdct.save(output_file, entry, overwrite=overwrite)
