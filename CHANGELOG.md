@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0b1] - 2026-11-16
+
 ### Added
 - `entry/data@default_slice` so viewers open on the sinogram (translation vs rotation).
 - `entry/data@interpretation` to follow `NXazint`.
 - `NXxrdct.data` (`NXdata` class) with `intensity`, `intensity_errors`, `radial_axis`, and `radial_axis_long_name`.
-- Optional intensity errors (`NXxrdct.data.intensity_errors`) is stored in `data/I_errors`.
+- Optional intensity errors (`NXxrdct.data.intensity_errors`) are stored in `data/I_errors`.
 
 ### Changed
 - `NXxrdct.save()` raises `ValueError` if:
@@ -21,19 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated data is stored in `data/I` instead of `instrument/detector/data`.
 - The radial axis is stored in `data/radial_axis` instead of `instrument/detector/radial_axis`.
 - `instrument/detector/data` is now an optional external link to the raw detector images.
+- `copy_nxxrdct_file` updates a relative `instrument/detector/data` link so it still points to the raw images, and logs a warning if the raw file is not found.
 - `radial_axis@long_name` can now only be `2theta` or `q` to follow `NXazint1d`.
 
 ### Deprecated
 - Setting `NXxrdct.intensity`, `NXdetector.radial_axis`, or `NXdetector.radial_axis_long_name`; use the matching `NXxrdct.data` fields.
 
-### Removed
-- None.
-
 ### Fixed
 - Deprecation warnings now show the line in the user's code that uses the deprecated name, instead of a line inside nxxrdct.
-
-### Security
-- None.
 
 ## [0.1.0b0] - 2026-09-30
 
@@ -67,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README quick start example for saving an NXxrdct entry.
 - Comprehensive unit tests for API objects, paths, utilities, and application I/O.
 
-[Unreleased]: https://github.com/nexuscontributions/nxxrdct/compare/v0.1.0b0...HEAD
+[Unreleased]: https://github.com/nexuscontributions/nxxrdct/compare/v0.1.0b1...HEAD
+[0.1.0b1]: https://github.com/nexuscontributions/nxxrdct/compare/v0.1.0b0...v0.1.0b1
 [0.1.0b0]: https://github.com/nexuscontributions/nxxrdct/compare/v0.1.0a0...v0.1.0b0
 [0.1.0a0]: https://github.com/nexuscontributions/nxxrdct/releases/tag/v0.1.0a0
